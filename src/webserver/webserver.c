@@ -4,7 +4,6 @@
 
 #include <stdio.h>
 #include "webserver.h"
-#include "ContentType.h"
 #include "Method.h"
 #include "../util/StringUtil.h"
 #include "paramUtil.h"
@@ -50,9 +49,7 @@ void default_not_found_function(Request *request, Response *response) {
     strcpy(result, prefix);
     strcat(result, path);
 
-    response->contentType = TEXT;
-
-    send_request(request, response, result);
+    send_request(response, result);
 }
 
 Webserver *create_webserver() {
@@ -83,20 +80,6 @@ void free_routing_table(HashTable *routing_table) {
     free_table(routing_table);
 }
 
-size_t digit_count(size_t number)
-{
-    if (number == 0)
-        return 1;
-
-    size_t count = 0;
-    while (number != 0)
-    {
-        number /= 10;
-        count++;
-    }
-    return count;
-}
-
 void handle_client(int client_socket, int buffer_size, Webserver *webserver)
 {
     char *buffer = (char *)malloc(sizeof(char) * buffer_size);
@@ -117,82 +100,38 @@ void handle_client(int client_socket, int buffer_size, Webserver *webserver)
     char actual_path[256];
     strcpy_until_char(actual_path, path, '?');
 
-    HashTable *params = create_table(10);
-    parse_url_params(params, path);
+    char *body = strstr(buffer, "\r\n\r\n");
+    if (body)
+    {
+        body += 4; // Skip the double CRLF
+    }
+
+    HashTable *query_params = create_table(10);
+    parse_url_params(query_params, path);
 
     HashTable *request_path_map = (HashTable *)search(webserver->routes, method);
 
+    Request *request = create_request(webserver->port, actual_path, NULL, string_to_method(method), query_params, body);
+    Response *response = create_response();
+
     if (request_path_map == NULL)
     {
-        webserver->not_found(NULL, NULL);
+        webserver->not_found(request, NULL);
         return;
     }
 
-    void (*route)(Request *,Response *) = search(request_path_map, method);
+    void (*route)(Request *, Response *) = search(request_path_map, method);
 
     if (route == NULL)
     {
-        webserver->not_found(NULL, NULL);
+        webserver->not_found(request, NULL);
         return;
     }
 
-    route(NULL, NULL);
-
-    /* Route *page_response = path_func(method, actual_path, path, params);
-
-    if (page_response == NULL)
-    {
-        free(buffer);
-        not_found_404(client_socket);
-        return;
-    }
-
-    char *content_type = ContentType_to_string(page_response->content_type);
-    size_t page_response_length = strlen(page_response->content);
-    size_t content_type_length = strlen(content_type);
-    size_t num_digits = digit_count(page_response_length);
-
-    char *str_value = (char *)malloc(sizeof(char) * (num_digits + 1));
-
-    if (str_value == NULL)
-    {
-        fprintf(stderr, "Memory allocation failed\n");
-        free(buffer);
-        internal_error_500(client_socket);
-        return;
-    }
-
-    sprintf(str_value, "%zu", page_response_length);
-    size_t response_length = strlen("HTTP/1.1 200 OK\r\nContent-Type: \r\nContent-Length: \r\n\r\n") + content_type_length + num_digits + page_response_length + 1;
-    char *response = (char *)malloc(response_length);
-
-    if (response == NULL)
-    {
-        fprintf(stderr, "Memory allocation failed\n");
-        free(str_value);
-        free(buffer);
-        internal_error_500(client_socket);
-        return;
-    }
-
-    snprintf(response, response_length, "HTTP/1.1 200 OK\r\nContent-Type: %s\r\nContent-Length: %s\r\n\r\n%s", content_type, str_value, page_response->content);
-    send(client_socket, response, (int)strlen(response), 0);
-    close(client_socket);
-
-    if(page_response->clean_up)
-    {
-        free(page_response->content);
-    }
-
-    free_route(page_response);
-    free_table(params);
-    free(response);
-    free(buffer);
-    free(str_value);
-     */
+    route(request, NULL);
 }
 
-int setup_webserver(int port, int buffer_size, Webserver *webserver)
+int setup_webserver(int buffer_size, Webserver *webserver)
 {
 #ifdef _WIN32
     initialize_winsock();
@@ -210,7 +149,7 @@ int setup_webserver(int port, int buffer_size, Webserver *webserver)
 
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = INADDR_ANY;
-    server_addr.sin_port = htons(port);
+    server_addr.sin_port = htons(webserver->port);
     if (bind(server_socket, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
     {
         perror("bind");
@@ -225,7 +164,7 @@ int setup_webserver(int port, int buffer_size, Webserver *webserver)
         return -1;
     }
 
-    printf("Server is listening on port %d\n", port);
+    printf("Server is listening on port %d\n", webserver->port);
 
     while (webserver->continue_running)
     {

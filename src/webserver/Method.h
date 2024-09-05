@@ -17,5 +17,6 @@ enum Method {
 };
 
 const char *Method_to_string(enum Method method);
+enum Method string_to_method(const char *method_str);
 
 #endif //C_WEBSERVER_METHOD_H

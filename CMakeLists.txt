@@ -6,8 +6,6 @@ add_executable(${PROJECT_NAME} src/main.c
         src/webserver/webserver.h
         src/util/HashTable.c
         src/util/HashTable.h
-        src/webserver/route.c
-        src/webserver/route.h
         src/webserver/Request.c
         src/webserver/Request.h
         src/webserver/Response.c
@@ -19,4 +17,7 @@ add_executable(${PROJECT_NAME} src/main.c
         src/webserver/paramUtil.c
         src/webserver/paramUtil.h
         src/util/StringUtil.c
-        src/util/StringUtil.h)
+        src/util/StringUtil.h
+        src/webserver/StatusCode.c
+        src/webserver/StatusCode.h
+        src/webserver/webserver_headers.h)
