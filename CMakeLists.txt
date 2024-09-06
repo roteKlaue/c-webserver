@@ -20,4 +20,8 @@ add_executable(${PROJECT_NAME} src/main.c
         src/util/StringUtil.h
         src/webserver/StatusCode.c
         src/webserver/StatusCode.h
-        src/webserver/webserver_headers.h)
+        src/webserver/webserver_headers.h
+        src/webserver/default-methods.c
+        src/webserver/default-methods.h)
+
+target_link_libraries(C-Webserver PRIVATE ws2_32)

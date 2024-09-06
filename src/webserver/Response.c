@@ -3,11 +3,23 @@
 //
 
 #include "Response.h"
-#include "StatusCode.h"
-#include "webserver_headers.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef _WIN32
+#include <winsock2.h>
+
+#pragma comment(lib, "Ws2_32.lib")
+typedef int socklen_t;
+#define close closesocket
+#else
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#endif
+
 
 size_t digit_count(size_t number)
 {
@@ -70,6 +82,8 @@ void send_request(Response *response, char *content)
     snprintf(response_finished, response_length, "HTTP/1.1 %d %s\r\nContent-Type: %s\r\nContent-Length: %s\r\n\r\n%s", (int) response->status_code, response_code, content_type, str_value, content);
 
     send(response->socket, response_finished, (int)strlen(response_finished), 0);
+    close(response->socket);
+
     free(str_value);
     free(response_finished);
     if(response->auto_clean_up)
@@ -84,18 +98,28 @@ void json_request(Response *response, char *content)
     send_request(response, content);
 }
 
-/*
-    send(client_socket, response, (int)strlen(response), 0);
-    close(client_socket);
+void set_content_type(Response *response, enum ContentType contentType)
+{
+    response->contentType = contentType;
+}
 
-    if(page_response->clean_up)
-    {
-        free(page_response->content);
-    }
+void set_status_code(Response *response, enum StatusCode statusCode)
+{
+    response->status_code = statusCode;
+}
 
-    free_route(page_response);
-    free_table(params);
+Response *create_response(int socket)
+{
+    Response *response = malloc(sizeof(Response));
+    response->contentType = TEXT;
+    response->auto_clean_up = true;
+    response->status_code = OK;
+    response->socket = socket;
+    response->error = false;
+    return response;
+}
+
+void free_response(Response *response)
+{
     free(response);
-    free(buffer);
-    free(str_value);
-     */
+}

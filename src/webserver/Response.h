@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include "Request.h"
 #include "ContentType.h"
+#include "StatusCode.h"
 
 typedef struct Response Response;
 
@@ -22,7 +23,8 @@ struct Response {
 void send_request(Response *response, char *content);
 void json_request(Response *response, char *content);
 void set_content_type(Response *response, enum ContentType contentType);
-void set_status_code(Response *response);
-Response *create_response();
+void set_status_code(Response *response, enum StatusCode statusCode);
+Response *create_response(int socket);
+void free_response(Response *response);
 
 #endif //C_WEBSERVER_RESPONSE_H

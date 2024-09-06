@@ -5,10 +5,10 @@
 #include <stdlib.h>
 #include "Request.h"
 
-Request *create_request(int port,
+Request *create_request(const int port,
                         char *absolute_path,
                         char **params,
-                        enum Method method,
+                        const enum Method method,
                         HashTable *query_params,
                         char *body)
 {
