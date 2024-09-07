@@ -5,20 +5,23 @@
 #ifndef C_WEBSERVER_REQUEST_H
 #define C_WEBSERVER_REQUEST_H
 
+#include <stdbool.h>
 #include "../util/HashTable.h"
 #include "Method.h"
 
 typedef struct {
     int port;
-    char *absolute_path;
+    char *body;
     char **params;
     int paramCount;
+    const char *path;
     enum Method method;
+    char *absolute_path;
     HashTable *query_params;
-    char *body;
 } Request;
 
 Request *create_request(int port,
+                        const char *path,
                         char *absolute_path,
                         char **params,
                         enum Method method,

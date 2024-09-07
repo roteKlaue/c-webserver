@@ -14,9 +14,10 @@ typedef struct Response Response;
 
 struct Response {
     enum ContentType contentType;
+    HashTable *headers;
     bool auto_clean_up;
     int status_code;
-    bool error;
+    const char *error;
     int socket;
 };
 

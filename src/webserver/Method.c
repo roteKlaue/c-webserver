@@ -2,11 +2,12 @@
 // Created by xxrot on 03.09.2024.
 //
 #include <string.h>
-#include <malloc.h>
+#include <stdlib.h>
 #include "Method.h"
 #include "../util/StringUtil.h"
 
-const char *Method_to_string(enum Method method) {
+const char *Method_to_string(enum Method method)
+{
     switch (method) {
         case Get:
             return "GET";
@@ -27,7 +28,8 @@ const char *Method_to_string(enum Method method) {
     }
 }
 
-enum Method string_to_method(const char *method_str) {
+enum Method string_to_method(const char *method_str)
+{
     char *upper = malloc(strlen(method_str) + 1);
     if (upper == NULL) {
         return NUM_METHODS;

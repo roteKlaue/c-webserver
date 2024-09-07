@@ -23,7 +23,7 @@ void default_not_found_function(Request *request, Response *response)
     send_request(response, result);
 }
 
-void default_internal_server_error(Request *request, Response *response)
+void default_internal_server_error(Request *request, Response *response, const char *_error)
 {
     set_status_code(response, INTERNAL_SERVER_ERROR);
     send_request(response, "internal server error");

@@ -37,7 +37,7 @@ size_t digit_count(size_t number)
 
 void send_request(Response *response, char *content)
 {
-    if (response == NULL)
+    if (response == NULL || content == NULL)
     {
         return;
     }
@@ -55,7 +55,7 @@ void send_request(Response *response, char *content)
     if (str_value == NULL)
     {
         fprintf(stderr, "Memory allocation failed\n");
-        response->error = true;
+        response->error = "Memory allocation failed";
         if(response->auto_clean_up)
         {
             free(content);
@@ -72,16 +72,19 @@ void send_request(Response *response, char *content)
     {
         fprintf(stderr, "Memory allocation failed\n");
         free(str_value);
-        response->error = true;
+        response->error = "Memory allocation failed";
         if(response->auto_clean_up)
         {
             free(content);
         }
         return;
     }
-    snprintf(response_finished, response_length, "HTTP/1.1 %d %s\r\nContent-Type: %s\r\nContent-Length: %s\r\n\r\n%s", (int) response->status_code, response_code, content_type, str_value, content);
 
-    send(response->socket, response_finished, (int)strlen(response_finished), 0);
+    snprintf(response_finished, response_length,
+             "HTTP/1.1 %d %s\r\nContent-Type: %s\r\nContent-Length: %s\r\n\r\n%s",
+             (int) response->status_code, response_code, content_type, str_value, content);
+
+    send(response->socket, response_finished, (int) strlen(response_finished), 0);
     close(response->socket);
 
     free(str_value);
@@ -111,15 +114,17 @@ void set_status_code(Response *response, enum StatusCode statusCode)
 Response *create_response(int socket)
 {
     Response *response = malloc(sizeof(Response));
+    response->headers = create_table(10);
+    response->auto_clean_up = false;
     response->contentType = TEXT;
-    response->auto_clean_up = true;
     response->status_code = OK;
     response->socket = socket;
-    response->error = false;
+    response->error = NULL;
     return response;
 }
 
 void free_response(Response *response)
 {
+    free_table(response->headers);
     free(response);
 }

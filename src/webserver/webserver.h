@@ -15,7 +15,7 @@
 typedef struct {
     HashTable *routes;
     void (*not_found)(Request *, Response *);
-    void (* internal_server_error)(Request *, Response *);
+    void (* internal_server_error)(Request *, Response *, const char *);
     bool continue_running;
     int port;
     int socket;

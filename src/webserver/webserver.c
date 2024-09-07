@@ -16,7 +16,8 @@
 void initialize_winsock()
 {
     WSADATA wsa;
-    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
+    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
+    {
         fprintf(stderr, "Failed to initialize Winsock. Error Code: %d\n", WSAGetLastError());
         exit(EXIT_FAILURE);
     }
@@ -92,8 +93,7 @@ void handle_client(int client_socket, int socket, Webserver *webserver)
 
     char method[16], path[256], version[16];
     sscanf(buffer, "%s %s %s", method, path, version);
-    char actual_path[256];
-    strcpy_until_char(actual_path, path, '?');
+    char *absolute_path = strcpy_until_char(malloc(sizeof(char) * strlen(path)), path, '?');
 
     char *body = strstr(buffer, "\r\n\r\n");
     if (body)
@@ -106,28 +106,35 @@ void handle_client(int client_socket, int socket, Webserver *webserver)
 
     HashTable *request_path_map = (HashTable *)search(webserver->routes, method);
 
-    Request *request = create_request(webserver->port, actual_path, NULL, string_to_method(method), query_params, body);
+    Request *request = create_request(webserver->port, path, absolute_path,
+                                      NULL, string_to_method(method),
+                                      query_params, body);
     Response *response = create_response(socket);
 
     if (request_path_map == NULL)
     {
-        printf("Method not found");
         webserver->not_found(request, response);
         return;
     }
 
-    void (*route)(Request *, Response *) = search(request_path_map, actual_path);
+    void (*route)(Request *, Response *) = search(request_path_map, absolute_path);
 
     if (route == NULL)
     {
-        printf("Route not found");
         webserver->not_found(request, response);
         return;
     }
 
     route(request, response);
-    free_request(request);
+
+    if (response->error != null)
+    {
+        webserver->internal_server_error(request, response, response->error);
+    }
+
     free_response(response);
+    free_request(request);
+    free(buffer);
 }
 
 bool run_webserver(Webserver *webserver)

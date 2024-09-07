@@ -6,6 +6,7 @@
 #include "Request.h"
 
 Request *create_request(const int port,
+                        const char *path,
                         char *absolute_path,
                         char **params,
                         const enum Method method,
@@ -13,12 +14,13 @@ Request *create_request(const int port,
                         char *body)
 {
     Request *request = malloc(sizeof(Request));
+    request->absolute_path = absolute_path;
     request->query_params = query_params;
-    request->body = body;
     request->params = params;
     request->method = method;
-    request->absolute_path = absolute_path;
+    request->body = body;
     request->port = port;
+    request->path = path;
     return request;
 }
 
@@ -26,20 +28,19 @@ void free_request(Request *request)
 {
     if (request == NULL) return;
 
-    if (request->body != NULL) {
-        free(request->body);
-    }
-
-    if (request->params != NULL) {
-        for (int i = 0; i < request->paramCount; ++i) {
-            if (request->params[i] != NULL) {
+    if (request->params != NULL)
+    {
+        for (int i = 0; i < request->paramCount; ++i)
+        {
+            if (request->params[i] != NULL)
+            {
                 free(request->params[i]);
             }
         }
         free(request->params);
     }
 
-    free(request->absolute_path);
     free_table(request->query_params);
+    free(request->absolute_path);
     free(request);
 }
