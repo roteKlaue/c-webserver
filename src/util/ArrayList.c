@@ -33,6 +33,8 @@ ArrayList *create_arraylist(int init_size)
         return NULL;
     }
 
+    list->destroy_element = NULL;
+    list->element_equals = NULL;
     list->capacity = init_size;
     list->size = 0;
     return list;
