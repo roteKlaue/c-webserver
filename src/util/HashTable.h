@@ -24,10 +24,10 @@ typedef struct
 HashTable *create_table(int initial_capacity);
 unsigned int hash(const char *key, int capacity);
 Entry *create_entry(const char *key, void *value);
-void insert(HashTable *table, const char *key, void *value);
-void *search(const HashTable *table, const char *key);
-void delete(HashTable *table, const char *key);
-void resize(HashTable *table);
+void insert_table(HashTable *table, const char *key, void *value);
+void *search_table(const HashTable *table, const char *key);
+void delete_table(HashTable *table, const char *key);
+void resize_table(HashTable *table);
 void free_table(HashTable *table);
 char **table_keys(const HashTable *table, int *key_count);
 void free_table_keys(char **keys, int key_count);

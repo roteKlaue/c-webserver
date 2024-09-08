@@ -14,14 +14,18 @@ add_executable(${PROJECT_NAME} src/main.c
         src/webserver/Method.h
         src/webserver/Method.c
         src/webserver/ContentType.c
-        src/webserver/paramUtil.c
-        src/webserver/paramUtil.h
-        src/util/StringUtil.c
-        src/util/StringUtil.h
+        src/webserver/param-util.c
+        src/webserver/param-util.h
+        src/util/string-util.c
+        src/util/string-util.h
         src/webserver/StatusCode.c
         src/webserver/StatusCode.h
         src/webserver/webserver_headers.h
         src/webserver/default-methods.c
-        src/webserver/default-methods.h)
+        src/webserver/default-methods.h
+        src/util/ArrayList.c
+        src/util/ArrayList.h
+        src/util/LinkedList.c
+        src/util/LinkedList.h)
 
 target_link_libraries(C-Webserver PRIVATE ws2_32)

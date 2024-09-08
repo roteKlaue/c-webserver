@@ -21,6 +21,7 @@ void default_not_found_function(Request *request, Response *response)
     strcat(result, path);
 
     send_request(response, result);
+    free(result);
 }
 
 void default_internal_server_error(Request *request, Response *response, const char *_error)

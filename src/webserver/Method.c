@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "Method.h"
-#include "../util/StringUtil.h"
+#include "../util/string-util.h"
 
 const char *Method_to_string(enum Method method)
 {

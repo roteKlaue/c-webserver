@@ -3,10 +3,10 @@
 //
 
 #include <stdio.h>
-#include "../util/StringUtil.h"
+#include "../util/string-util.h"
 #include "webserver_headers.h"
 #include "default-methods.h"
-#include "paramUtil.h"
+#include "param-util.h"
 #include "webserver.h"
 #include "Method.h"
 
@@ -57,7 +57,7 @@ HashTable *create_routing_table()
     HashTable *routing_table = create_table(10);
     for (int i = 0; i < NUM_METHODS; ++i)
     {
-        insert(routing_table,
+        insert_table(routing_table,
                Method_to_string(methods[i]),
                create_table(10));
     }
@@ -69,7 +69,7 @@ void free_routing_table(HashTable *routing_table)
     if (routing_table == null) return;
     for (int i = 0; i < NUM_METHODS; ++i)
     {
-        HashTable *entry = (HashTable *) search(routing_table, Method_to_string(methods[i]));
+        HashTable *entry = (HashTable *) search_table(routing_table, Method_to_string(methods[i]));
         if (entry == null) continue;
         free_table(entry);
     }
@@ -104,7 +104,7 @@ void handle_client(int client_socket, int socket, Webserver *webserver)
     HashTable *query_params = create_table(10);
     parse_url_params(query_params, path);
 
-    HashTable *request_path_map = (HashTable *)search(webserver->routes, method);
+    HashTable *request_path_map = (HashTable *)search_table(webserver->routes, method);
 
     Request *request = create_request(webserver->port, path, absolute_path,
                                       NULL, string_to_method(method),
@@ -117,7 +117,7 @@ void handle_client(int client_socket, int socket, Webserver *webserver)
         return;
     }
 
-    void (*route)(Request *, Response *) = search(request_path_map, absolute_path);
+    void (*route)(Request *, Response *) = search_table(request_path_map, absolute_path);
 
     if (route == NULL)
     {
@@ -132,6 +132,7 @@ void handle_client(int client_socket, int socket, Webserver *webserver)
         webserver->internal_server_error(request, response, response->error);
     }
 
+    // free(absolute_path);
     free_response(response);
     free_request(request);
     free(buffer);

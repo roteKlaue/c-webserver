@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "webserver/webserver.h"
 
 Webserver *webserver;
@@ -13,6 +14,11 @@ void shutdown(Request *request, Response *response)
     send_request(response, "Shutting down");
 }
 
+void teapot_route(Request *request, Response *response)
+{
+    set_status_code(response, IM_A_TEAPOT);
+    send_request(response, "I'm a teapot");
+}
 
 void json_test(Request *request, Response *response)
 {
@@ -25,14 +31,22 @@ void html_test(Request *request, Response *response)
     send_request(response, "<body> <h1>human</h1><p>sus</p> </body>");
 }
 
+void post_test(Request *request, Response response)
+{
+    printf("%s\n", request->body);
+    send_request(&response, request->body);
+}
+
 int main()
 {
     webserver = create_webserver();
 
-    insert(search(webserver->routes, "GET"), "/", &index_route);
-    insert(search(webserver->routes, "GET"), "/shutdown", &shutdown);
-    insert(search(webserver->routes, "GET"), "/json", &json_test);
-    insert(search(webserver->routes, "GET"), "/html", &html_test);
+    insert_table(search_table(webserver->routes, "GET"), "/", &index_route);
+    insert_table(search_table(webserver->routes, "GET"), "/shutdown", &shutdown);
+    insert_table(search_table(webserver->routes, "GET"), "/teapot", &teapot_route);
+    insert_table(search_table(webserver->routes, "GET"), "/json", &json_test);
+    insert_table(search_table(webserver->routes, "GET"), "/html", &html_test);
+    insert_table(search_table(webserver->routes, "POST"), "/post", &post_test);
 
     run_webserver(webserver);
     clean_up_webserver(webserver);

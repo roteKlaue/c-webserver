@@ -4,7 +4,7 @@
 
 #include <ctype.h>
 #include <string.h>
-#include "StringUtil.h"
+#include "string-util.h"
 
 void copy_until_index(const char *source, char *destination, size_t index)
 {

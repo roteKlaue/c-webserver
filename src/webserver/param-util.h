@@ -2,11 +2,11 @@
 // Created by xxrot on 03.09.2024.
 //
 
-#ifndef C_WEBSERVER_PARAMUTIL_H
-#define C_WEBSERVER_PARAMUTIL_H
+#ifndef C_WEBSERVER_PARAM_UTIL_H
+#define C_WEBSERVER_PARAM_UTIL_H
 
 #include "../util/HashTable.h"
 
 void parse_url_params(HashTable *table, const char *url);
 
-#endif //C_WEBSERVER_PARAMUTIL_H
+#endif //C_WEBSERVER_PARAM_UTIL_H

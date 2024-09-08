@@ -41,7 +41,7 @@ Entry* create_entry(const char *key, void *value)
     return entry;
 }
 
-void insert(HashTable *table, const char *key, void *value)
+void insert_table(HashTable *table, const char *key, void *value)
 {
     const unsigned int bucket = hash(key, table->capacity);
     Entry *entry = table->entries[bucket];
@@ -60,11 +60,11 @@ void insert(HashTable *table, const char *key, void *value)
     table->size++;
 
     if ((float)table->size / (float)table->capacity >= LOAD_FACTOR) {
-        resize(table);
+        resize_table(table);
     }
 }
 
-void *search(const HashTable *table, const char *key)
+void *search_table(const HashTable *table, const char *key)
 {
     const unsigned int bucket = hash(key, table->capacity);
     const Entry *entry = table->entries[bucket];
@@ -78,7 +78,7 @@ void *search(const HashTable *table, const char *key)
     return NULL;
 }
 
-void delete(HashTable *table, const char *key)
+void delete_table(HashTable *table, const char *key)
 {
     const unsigned int bucket = hash(key, table->capacity);
     Entry *entry = table->entries[bucket];
@@ -104,7 +104,7 @@ void delete(HashTable *table, const char *key)
     table->size--;
 }
 
-void resize(HashTable *table)
+void resize_table(HashTable *table)
 {
     const int new_capacity = table->capacity * 2;
     Entry **new_entries = malloc(sizeof(Entry*) * new_capacity);
