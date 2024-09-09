@@ -41,12 +41,7 @@ int main()
 {
     webserver = create_webserver();
 
-    insert_table(search_table(webserver->routes, "GET"), "/", &index_route);
-    insert_table(search_table(webserver->routes, "GET"), "/shutdown", &shutdown);
-    insert_table(search_table(webserver->routes, "GET"), "/teapot", &teapot_route);
-    insert_table(search_table(webserver->routes, "GET"), "/json", &json_test);
-    insert_table(search_table(webserver->routes, "GET"), "/html", &html_test);
-    insert_table(search_table(webserver->routes, "POST"), "/post", &post_test);
+    add_route(webserver->routes, Get, "/", &index_route);
 
     run_webserver(webserver);
     clean_up_webserver(webserver);

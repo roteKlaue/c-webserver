@@ -29,7 +29,7 @@ void parse_url_params(HashTable *table, const char *url)
 
         if (key && value)
         {
-            insert(table, key, strdup(value));
+            insert_table(table, key, strdup(value));
         }
 
         pair = strtok(NULL, "&");

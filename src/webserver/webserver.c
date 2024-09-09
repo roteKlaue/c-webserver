@@ -61,6 +61,7 @@ HashTable *create_routing_table()
                Method_to_string(methods[i]),
                create_table(10));
     }
+    insert_table(routing_table, "ROUTERS", create_table(10));
     return routing_table;
 }
 

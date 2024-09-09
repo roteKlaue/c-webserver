@@ -12,10 +12,20 @@
 #define DEFAULT_BUFFER_SIZE 4096
 #define DEFAULT_PORT 4096
 
+typedef enum {
+    ROUTER,
+    ROUTE
+} RoutingEntryType;
+
+typedef struct {
+    RoutingEntryType type;
+    void *data;
+} RoutingEntry;
+
 typedef struct {
     HashTable *routes;
     void (*not_found)(Request *, Response *);
-    void (* internal_server_error)(Request *, Response *, const char *);
+    void (*internal_server_error)(Request *, Response *, const char *);
     bool continue_running;
     int port;
     int socket;
@@ -28,5 +38,7 @@ bool run_webserver(Webserver *webserver);
 void clean_up_webserver(Webserver *webserver);
 HashTable *create_routing_table();
 void free_routing_table(HashTable *routing_table);
+void add_route(HashTable *routing_table, enum Method method, const char *route, void (*route_implementation)(Request *, Response *));
+void add_router(HashTable *routing_table, const char *default_route, HashTable router);
 
 #endif //C_WEBSERVER_WEBSERVER_H
