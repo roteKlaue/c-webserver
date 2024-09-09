@@ -11,5 +11,9 @@ char *strcpy_until_char(char *dest, const char *src, char stop_char);
 char *strcpy_after_char(char *dest, const char *src, char start_char);
 void to_uppercase(char *str);
 void to_lowercase(char *str);
+char* substring(const char* str, int start, size_t length);
+int string_count_occurrences(const char *str, char key);
+char **string_split(const char *str, char key, int *size);
+void free_string_parts(char **parts, int size);
 
 #endif //C_WEBSERVER_STRING_UTIL_H

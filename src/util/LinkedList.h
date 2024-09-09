@@ -7,23 +7,23 @@
 
 #include <stdbool.h>
 
-typedef struct Entry Entry;
+typedef struct ListEntry ListEntry;
 
-struct Entry {
+struct ListEntry {
     void *value;
-    Entry *next;
-    Entry *previous;
+    ListEntry *next;
+    ListEntry *previous;
 };
 
 typedef struct {
     int size;
-    Entry *start_element;
+    ListEntry *start_element;
     void (*destroy_element)(void *element);
     bool (*element_equals)(void *element1, void *element2);
 } LinkedList;
 
 LinkedList *create_linkedlist();
-Entry *create_entry(void *element);
+ListEntry *create_listentry(void *element);
 void *get_linkedlist(LinkedList *list, int index);
 bool remove_linkedlist(LinkedList *list, int index);
 bool add_linkedlist(LinkedList *list, void *element);
@@ -32,6 +32,6 @@ bool is_empty_linkedlist(LinkedList *list);
 int index_of_linkedlist(LinkedList *list, void *element);
 int last_index_of_linkedlist(LinkedList *list, void *element);
 void free_linkedlist(LinkedList *list);
-void free_entry(LinkedList *list, Entry *entry);
+void free_listentry(LinkedList *list, ListEntry *entry);
 
 #endif //C_WEBSERVER_LINKEDLIST_H

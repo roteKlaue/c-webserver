@@ -6,28 +6,31 @@
 #define C_WEBSERVER_HASHTABLE_H
 
 #define LOAD_FACTOR 0.75
+#define SHRINK_THRESHOLD 0.375
+#define MINIMUM_CAPACITY 8
 
-typedef struct Entry
+typedef struct TableEntry
 {
     char *key;
     void *value;
-    struct Entry *next;
-} Entry;
+    struct TableEntry *next;
+} TableEntry;
 
 typedef struct
 {
-    Entry **entries;
+    TableEntry **entries;
     int size;
     int capacity;
 } HashTable;
 
 HashTable *create_table(int initial_capacity);
 unsigned int hash(const char *key, int capacity);
-Entry *create_entry(const char *key, void *value);
+TableEntry *create_entry(const char *key, void *value);
 void insert_table(HashTable *table, const char *key, void *value);
 void *search_table(const HashTable *table, const char *key);
 void delete_table(HashTable *table, const char *key);
 void resize_table(HashTable *table);
+void shrink_table(HashTable *table);
 void free_table(HashTable *table);
 char **table_keys(const HashTable *table, int *key_count);
 void free_table_keys(char **keys, int key_count);

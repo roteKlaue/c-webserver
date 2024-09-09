@@ -204,3 +204,37 @@ void free_webserver(Webserver *webserver)
     free_routing_table(webserver->routes);
     free(webserver);
 }
+
+RoutingEntry *create_routingentry(void *val, RoutingEntryType type)
+{
+    RoutingEntry *routing_entry = malloc(sizeof(RoutingEntry *));
+    routing_entry->type = type;
+    routing_entry->data = val;
+    return routing_entry;
+}
+
+void insert_helper(HashTable *routing_table, const char *method, char *route, void *val, RoutingEntryType type)
+{
+    to_uppercase(route);
+    insert_table(search_table(routing_table, method), route, create_routingentry(val, type));
+}
+
+void add_route(HashTable *routing_table, enum Method method, char *route,
+               void (*route_implementation)(Request *, Response *))
+{
+    insert_helper(routing_table, Method_to_string(method), route, route_implementation, ROUTE);
+}
+
+void add_router(HashTable *routing_table, char *default_route, HashTable *router)
+{
+    insert_helper(routing_table, "ROUTERS", default_route, router, ROUTER);
+}
+
+void free_routingentry(RoutingEntry *entry)
+{
+    if (entry->type == ROUTER)
+    {
+        free_routing_table(entry->data);
+    }
+    free(entry);
+}

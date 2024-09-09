@@ -11,16 +11,25 @@ LinkedList *create_linkedlist()
     if (!list) return NULL;
     list->size = 0;
     list->start_element = NULL;
-    list->destroy_element = NULL;
+    list->destroy_element = free;
     list->element_equals = NULL;
     return list;
 }
 
+ListEntry *create_listentry(void *element)
+{
+    ListEntry *entry = malloc(sizeof(ListEntry));
+    entry->value = element;
+    entry->previous = NULL;
+    entry->next = NULL;
+    return entry;
+}
+
 void *get_linkedlist(LinkedList *list, int index)
 {
-    if (index < 0 || index >= list->size || is_empty_linkedlist(list)) return NULL;
+    if (list == NULL || index < 0 || index >= list->size || is_empty_linkedlist(list)) return NULL;
 
-    Entry *entry = list->start_element;
+    ListEntry *entry = list->start_element;
     for (int i = 0; i < index; ++i) {
         entry = entry->next;
     }
@@ -30,9 +39,9 @@ void *get_linkedlist(LinkedList *list, int index)
 
 bool remove_linkedlist(LinkedList *list, int index)
 {
-    if (index < 0 || index >= list->size || is_empty_linkedlist(list)) return false;
+    if (list == NULL || index < 0 || index >= list->size || is_empty_linkedlist(list)) return false;
 
-    Entry *entry = list->start_element;
+    ListEntry *entry = list->start_element;
     for (int i = 0; i < index; ++i) {
         entry = entry->next;
     }
@@ -47,7 +56,7 @@ bool remove_linkedlist(LinkedList *list, int index)
         entry->next->previous = entry->previous;
     }
 
-    free_entry(list, entry);
+    free_listentry(list, entry);
     list->size--;
 
     return true;
@@ -55,14 +64,16 @@ bool remove_linkedlist(LinkedList *list, int index)
 
 bool add_linkedlist(LinkedList *list, void *element)
 {
-    Entry *entry = create_entry(element);
+    if (list == NULL) return false;
+
+    ListEntry *entry = create_listentry(element);
 
     if (entry == NULL) return false;
 
     if (is_empty_linkedlist(list)) {
         list->start_element = entry;
     } else {
-        Entry *temp_entry = list->start_element;
+        ListEntry *temp_entry = list->start_element;
         while (temp_entry->next != NULL) {
             temp_entry = temp_entry->next;
         }
@@ -74,7 +85,7 @@ bool add_linkedlist(LinkedList *list, void *element)
     return true;
 }
 
-void free_entry(LinkedList *list, Entry *entry)
+void free_listentry(LinkedList *list, ListEntry *entry)
 {
     if (list == NULL || entry == NULL) return;
     if (list->destroy_element)
@@ -88,11 +99,11 @@ void free_linkedlist(LinkedList *list)
 {
     if (list == NULL) return;
 
-    Entry *temp = list->start_element;
+    ListEntry *temp = list->start_element;
 
     while (temp != NULL) {
-        Entry *next = temp->next;
-        free_entry(list, temp);
+        ListEntry *next = temp->next;
+        free_listentry(list, temp);
         temp = next;
     }
 
@@ -109,11 +120,11 @@ int index_of_linkedlist(LinkedList *list, void *element)
 {
     if (list == NULL || list->start_element == NULL) return -1;
 
-    Entry *entry = list->start_element;
+    ListEntry *entry = list->start_element;
     for (int i = 0; entry!=NULL; i++) {
         if (list->element_equals)
         {
-            if (list->element_equals(element, entry))
+            if (list->element_equals(element, entry->value))
                 return i;
         } else {
             if (entry->value == element)
@@ -123,4 +134,56 @@ int index_of_linkedlist(LinkedList *list, void *element)
     }
 
     return -1;
+}
+
+int last_index_of_linkedlist(LinkedList *list, void *element)
+{
+    if (list == NULL || list->start_element == NULL) return -1;
+
+    ListEntry *entry = list->start_element;
+    int index = -1;
+    for (int i = 0; entry != NULL; i++) {
+        if (list->element_equals) {
+            if (list->element_equals(element, entry->value)) {
+                index = i;
+            }
+        } else {
+            if (entry->value == element) {
+                index = i;
+            }
+        }
+        entry = entry->next;
+    }
+
+    return index;
+}
+
+bool insert_linkedlist(LinkedList *list, void *element, int index)
+{
+    if (list == NULL || index < 0 || index > list->size) return false;
+
+    ListEntry *entry = create_listentry(element);
+    if (entry == NULL) return false;
+
+    if (index == 0) {
+        if (list->start_element != NULL) {
+            entry->next = list->start_element;
+            list->start_element->previous = entry;
+        }
+        list->start_element = entry;
+    } else {
+        ListEntry *current = list->start_element;
+        for (int i = 0; i < index - 1; ++i) {
+            current = current->next;
+        }
+        entry->next = current->next;
+        entry->previous = current;
+        if (current->next != NULL) {
+            current->next->previous = entry;
+        }
+        current->next = entry;
+    }
+
+    list->size++;
+    return true;
 }

@@ -9,6 +9,7 @@
 
 #define LOAD_FACTOR 0.75
 #define DEFAULT_CAPACITY 10
+#define MINIMUM_CAPACITY 10
 
 typedef struct {
     int size;

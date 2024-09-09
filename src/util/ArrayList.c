@@ -33,7 +33,7 @@ ArrayList *create_arraylist(int init_size)
         return NULL;
     }
 
-    list->destroy_element = NULL;
+    list->destroy_element = free;
     list->element_equals = NULL;
     list->capacity = init_size;
     list->size = 0;
@@ -47,7 +47,7 @@ ArrayList *create_default_arraylist()
 
 void *get_arraylist(ArrayList *list, int index)
 {
-    if (index < 0 || index >= list->size) return NULL;
+    if (list == NULL || index < 0 || index >= list->size) return NULL;
     return list->elements[index];
 }
 
@@ -58,27 +58,33 @@ bool is_empty_arraylist(ArrayList *list)
 
 void free_arraylist(ArrayList *list)
 {
+    if(list == NULL) return;
+
     if (list->destroy_element) {
         for (int i = 0; i < list->size; i++) {
             list->destroy_element(list->elements[i]);
         }
     }
+
     free(list->elements);
     free(list);
 }
 
 bool add_arraylist(ArrayList *list, void *element)
 {
+    if(list == NULL) return false;
+
     if (list->size == list->capacity) {
         if (!resize_arraylist(list)) return false;
     }
+
     list->elements[list->size++] = element;
     return true;
 }
 
 bool remove_arraylist(ArrayList *list, int index)
 {
-    if (index < 0 || index >= list->size) {
+    if (list == NULL || index < 0 || index >= list->size) {
         return false;
     }
 
@@ -92,7 +98,7 @@ bool remove_arraylist(ArrayList *list, int index)
 
 bool insert_arraylist(ArrayList *list, void *element, int index)
 {
-    if (index < 0 || index > list->size) {
+    if (list == NULL || index < 0 || index > list->size) {
         return false;
     }
 
@@ -116,6 +122,8 @@ int get_size_arraylist(ArrayList *list)
 
 int index_of_arraylist(ArrayList *list, void *element)
 {
+    if(list == NULL) return -1;
+
     if (element == NULL || list->element_equals == NULL) {
         for (int i = 0; i < list->size; i++)
             if (list->elements[i]==element)
@@ -129,6 +137,8 @@ int index_of_arraylist(ArrayList *list, void *element)
 }
 
 int last_index_of_arraylist(ArrayList *list, void *element) {
+    if(list == NULL) return -1;
+
     if (element == NULL || list->element_equals == NULL) {
         for (int i = list->size-1; i >= 0; i--)
             if (list->elements[i]==element)
@@ -142,9 +152,13 @@ int last_index_of_arraylist(ArrayList *list, void *element) {
 }
 
 bool shrink_arraylist(ArrayList *list) {
-    if (list->size > list->capacity / 2) return true;
+    if(list == NULL) return false;
+
+    if (list->size > list->capacity * LOAD_FACTOR || list->capacity <= MINIMUM_CAPACITY) return true;
 
     int new_capacity = list->capacity / 2;
+    if (new_capacity < MINIMUM_CAPACITY) new_capacity = MINIMUM_CAPACITY;
+
     void **new_elements = realloc(list->elements, sizeof(void *) * new_capacity);
 
     if (!new_elements) {
