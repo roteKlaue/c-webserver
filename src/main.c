@@ -39,12 +39,15 @@ void post_test(Request *request, Response response)
 
 int main()
 {
+    initialise_webserver_framework();
     webserver = create_webserver();
 
     add_route(webserver->routes, Get, "/", &index_route);
+    add_route(webserver->routes, Get, "/shutdown", &shutdown);
 
     run_webserver(webserver);
     clean_up_webserver(webserver);
+    clean_up_webserver_framework();
 
     return 0;
 }

@@ -15,7 +15,8 @@ enum ContentType {
     HTML,  /**< Represents text/html */
     XML,   /**< Represents application/xml */
     CSS,   /**< Represents text/css */
-    JS     /**< Represents application/javascript */
+    JS,    /**< Represents application/javascript */
+    UNKNOWN
 };
 
 /**
@@ -25,5 +26,6 @@ enum ContentType {
  * @return A string representing the content type (e.g., "application/json").
  */
 const char* ContentType_to_string(enum ContentType content_type);
+enum ContentType string_to_ContentType(const char *content_type_str);
 
 #endif //C_WEBSERVER_CONTENTTYPE_H

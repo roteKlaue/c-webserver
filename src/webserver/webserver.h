@@ -33,6 +33,8 @@ typedef struct {
     int buffer_size;
 } Webserver;
 
+void initialise_webserver_framework();
+void clean_up_webserver_framework();
 Webserver *create_webserver();
 RoutingEntry *create_routingentry(void *val, RoutingEntryType type);
 void free_webserver(Webserver *webserver);
@@ -40,9 +42,9 @@ bool run_webserver(Webserver *webserver);
 void clean_up_webserver(Webserver *webserver);
 HashTable *create_routing_table();
 void free_routing_table(HashTable *routing_table);
-void add_route(HashTable *routing_table, enum Method method, char *route,
+void add_route(HashTable *routing_table, enum Method method, const char *route,
         void (*route_implementation)(Request *, Response *));
-void add_router(HashTable *routing_table, char *default_route, HashTable *router);
+void add_router(HashTable *routing_table, const char *default_route, HashTable *router);
 void free_routingentry(RoutingEntry *entry);
 
 #endif //C_WEBSERVER_WEBSERVER_H

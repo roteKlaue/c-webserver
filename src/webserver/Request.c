@@ -3,6 +3,7 @@
 //
 
 #include <stdlib.h>
+#include <string.h>
 #include "Request.h"
 
 Request *create_request(const int port,
@@ -14,7 +15,13 @@ Request *create_request(const int port,
                         char *body)
 {
     Request *request = malloc(sizeof(Request));
-    request->absolute_path = absolute_path;
+
+    if (request == NULL)
+    {
+        return NULL;
+    }
+
+    request->absolute_path = strdup(absolute_path);
     request->query_params = query_params;
     request->params = params;
     request->method = method;

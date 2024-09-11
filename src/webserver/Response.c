@@ -2,24 +2,11 @@
 // Created by xxrot on 03.09.2024.
 //
 
+#include "webserver_headers.h"
 #include "Response.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#ifdef _WIN32
-#include <winsock2.h>
-
-#pragma comment(lib, "Ws2_32.lib")
-typedef int socklen_t;
-#define close closesocket
-#else
-#include <unistd.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#endif
-
 
 size_t digit_count(size_t number)
 {
@@ -114,6 +101,9 @@ void set_status_code(Response *response, enum StatusCode statusCode)
 Response *create_response(int socket)
 {
     Response *response = malloc(sizeof(Response));
+
+    if (response == NULL) return NULL;
+
     response->headers = create_table(10);
     response->auto_clean_up = false;
     response->contentType = TEXT;

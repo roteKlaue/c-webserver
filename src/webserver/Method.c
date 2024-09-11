@@ -30,13 +30,12 @@ const char *Method_to_string(enum Method method)
 
 enum Method string_to_method(const char *method_str)
 {
-    char *upper = malloc(strlen(method_str) + 1);
-    if (upper == NULL) {
+    if (method_str == NULL)
+    {
         return NUM_METHODS;
     }
 
-    strcpy(upper, method_str);
-    to_uppercase(upper);
+    char *upper = to_uppercase(method_str);
 
     enum Method method;
     if (strcmp(upper, "GET") == 0) {

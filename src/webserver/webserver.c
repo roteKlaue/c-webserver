@@ -5,12 +5,15 @@
 #include <stdio.h>
 #include "../util/string-util.h"
 #include "webserver_headers.h"
+#include "../util/ArrayList.h"
 #include "default-methods.h"
 #include "param-util.h"
 #include "webserver.h"
 #include "Method.h"
 
 #define null NULL
+
+HashTable *used_ports;
 
 #ifdef _WIN32
 void initialize_winsock()
@@ -28,6 +31,33 @@ void cleanup_winsock()
     WSACleanup();
 }
 #endif
+
+bool initialised = false;
+
+void initialise_webserver_framework()
+{ /* if later required add more initialization here */
+    if (initialised) return;
+
+    used_ports = create_table(10);
+
+#ifdef _WIN32
+    initialize_winsock();
+#endif
+    initialised = true;
+}
+
+void clean_up_webserver_framework()
+{ /* if later required add more cleanup here */
+    if (!initialised) return;
+
+    free_table(used_ports);
+
+#ifdef _WIN32
+    cleanup_winsock();
+#endif
+    initialised = false;
+}
+
 
 const enum Method methods[] = {
         Get,
@@ -65,19 +95,37 @@ HashTable *create_routing_table()
     return routing_table;
 }
 
+void free_entry(HashTable *routing_table_entry)
+{
+    if (routing_table_entry == null) return;
+
+    int keyCount;
+    char **keys = table_keys(routing_table_entry, &keyCount);
+
+    for (int j = 0; j < keyCount; ++j)
+    {
+        free_routingentry(search_table(routing_table_entry, keys[j]));
+    }
+
+    free_table_keys(keys, keyCount);
+
+    free_table(routing_table_entry);
+}
+
 void free_routing_table(HashTable *routing_table)
 {
     if (routing_table == null) return;
+
     for (int i = 0; i < NUM_METHODS; ++i)
     {
-        HashTable *entry = (HashTable *) search_table(routing_table, Method_to_string(methods[i]));
-        if (entry == null) continue;
-        free_table(entry);
+        free_entry(search_table(routing_table, Method_to_string(methods[i])));
     }
+
+    free_entry(search_table(routing_table, "ROUTERS"));
     free_table(routing_table);
 }
 
-void handle_client(int client_socket, int socket, Webserver *webserver)
+void handle_client(int client_socket, Webserver *webserver)
 {
     char *buffer = (char *)malloc(sizeof(char) * webserver->buffer_size);
     int bytes_read;
@@ -94,7 +142,7 @@ void handle_client(int client_socket, int socket, Webserver *webserver)
 
     char method[16], path[256], version[16];
     sscanf(buffer, "%s %s %s", method, path, version);
-    char *absolute_path = strcpy_until_char(malloc(sizeof(char) * strlen(path)), path, '?');
+    char *absolute_path = strcpy_until_char(malloc(sizeof(char) * (strlen(path) + 1)), path, '?');
 
     char *body = strstr(buffer, "\r\n\r\n");
     if (body)
@@ -110,7 +158,7 @@ void handle_client(int client_socket, int socket, Webserver *webserver)
     Request *request = create_request(webserver->port, path, absolute_path,
                                       NULL, string_to_method(method),
                                       query_params, body);
-    Response *response = create_response(socket);
+    Response *response = create_response(client_socket);
 
     if (request_path_map == NULL)
     {
@@ -118,22 +166,25 @@ void handle_client(int client_socket, int socket, Webserver *webserver)
         return;
     }
 
-    void (*route)(Request *, Response *) = search_table(request_path_map, absolute_path);
+    HashTable *routers = search_table(request_path_map, "ROUTERS");
+    ArrayList *list = create_default_arraylist();
 
-    if (route == NULL)
+    RoutingEntry *entry = search_table(request_path_map, absolute_path);
+
+    if (entry == NULL)
     {
         webserver->not_found(request, response);
         return;
     }
 
-    route(request, response);
+    ((void (*)(Request *, Response *)) entry->data)(request, response);
 
     if (response->error != null)
     {
         webserver->internal_server_error(request, response, response->error);
     }
 
-    // free(absolute_path);
+    free(absolute_path);
     free_response(response);
     free_request(request);
     free(buffer);
@@ -141,9 +192,12 @@ void handle_client(int client_socket, int socket, Webserver *webserver)
 
 bool run_webserver(Webserver *webserver)
 {
-#ifdef _WIN32
-    initialize_winsock();
-#endif
+    if (!initialised)
+    {
+        fprintf(stderr, "Not initialised. Run `initialise_webserver_framework()` before calling `run_webserver()`\n");
+        return false;
+    }
+
     int client_socket;
     struct sockaddr_in server_addr, client_addr;
     socklen_t client_addr_len = sizeof(client_addr);
@@ -184,7 +238,7 @@ bool run_webserver(Webserver *webserver)
             return false;
         }
 
-        handle_client(client_socket, client_socket, webserver);
+        handle_client(client_socket, webserver);
     }
 
     return true;
@@ -194,9 +248,6 @@ void clean_up_webserver(Webserver *webserver)
 {
     close(webserver->socket);
     free_webserver(webserver);
-#ifdef _WIN32
-    cleanup_winsock();
-#endif
 }
 
 void free_webserver(Webserver *webserver)
@@ -213,19 +264,20 @@ RoutingEntry *create_routingentry(void *val, RoutingEntryType type)
     return routing_entry;
 }
 
-void insert_helper(HashTable *routing_table, const char *method, char *route, void *val, RoutingEntryType type)
+void insert_helper(HashTable *routing_table, const char *method, const char *route, void *val, RoutingEntryType type)
 {
-    to_uppercase(route);
-    insert_table(search_table(routing_table, method), route, create_routingentry(val, type));
+    char *lower_route = to_lowercase(route);
+    insert_table(search_table(routing_table, method), lower_route, create_routingentry(val, type));
+    free(lower_route);
 }
 
-void add_route(HashTable *routing_table, enum Method method, char *route,
+void add_route(HashTable *routing_table, enum Method method, const char *route,
                void (*route_implementation)(Request *, Response *))
 {
     insert_helper(routing_table, Method_to_string(method), route, route_implementation, ROUTE);
 }
 
-void add_router(HashTable *routing_table, char *default_route, HashTable *router)
+void add_router(HashTable *routing_table, const char *default_route, HashTable *router)
 {
     insert_helper(routing_table, "ROUTERS", default_route, router, ROUTER);
 }

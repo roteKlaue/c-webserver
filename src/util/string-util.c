@@ -7,14 +7,6 @@
 #include <stdlib.h>
 #include "string-util.h"
 
-void copy_until_index(const char *source, char *destination, size_t index)
-{
-    if (index <= 0 || source == NULL || destination == NULL) return;
-
-    memcpy(destination, source, index);
-    destination[index] = '\0';
-}
-
 int find_char_index(const char *src, char find_char)
 {
     int index = 0;
@@ -29,35 +21,47 @@ int find_char_index(const char *src, char find_char)
     return -1;
 }
 
+void copy_until_index(const char *src, char *dest, int index)
+{
+    for (int i = 0; i < index; ++i) {
+        dest[i] = src[i];
+    }
+    dest[index] = '\0';
+}
+
 char *strcpy_until_char(char *dest, const char *src, char stop_char)
 {
-    int i = find_char_index(src, stop_char);
+    int index = find_char_index(src, stop_char);
 
-    if (i == -1) {
+    if (index == -1) {
         strcpy(dest, src);
     } else {
-        copy_until_index(src, dest, i);
+        copy_until_index(src, dest, index);
     }
 
     return dest;
 }
 
-
-void to_uppercase(char *str)
+char *to_uppercase(const char *str)
 {
+    char *upper = strdup(str);
     for (int i = 0; str[i] != '\0'; i++)
     {
-        str[i] = (char) toupper(str[i]);
+        upper[i] = (char) toupper(upper[i]);
     }
+    return upper;
 }
 
-void to_lowercase(char *str)
+char *to_lowercase(const char *str)
 {
+    char *lower = strdup(str);
     for (int i = 0; str[i] != '\0'; i++)
     {
-        str[i] = (char) tolower(str[i]);
+        lower[i] = (char) tolower(lower[i]);
     }
+    return lower;
 }
+
 
 char *strcpy_after_char(char *dest, const char *src, char start_char)
 {
