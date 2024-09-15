@@ -13,8 +13,6 @@
 
 #define null NULL
 
-HashTable *used_ports;
-
 #ifdef _WIN32
 void initialize_winsock()
 {
@@ -37,9 +35,6 @@ bool initialised = false;
 void initialise_webserver_framework()
 { /* if later required add more initialization here */
     if (initialised) return;
-
-    used_ports = create_table(10);
-
 #ifdef _WIN32
     initialize_winsock();
 #endif
@@ -49,9 +44,6 @@ void initialise_webserver_framework()
 void clean_up_webserver_framework()
 { /* if later required add more cleanup here */
     if (!initialised) return;
-
-    free_table(used_ports);
-
 #ifdef _WIN32
     cleanup_winsock();
 #endif
@@ -214,7 +206,12 @@ bool run_webserver(Webserver *webserver)
     server_addr.sin_port = htons(webserver->port);
     if (bind(webserver->socket, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
     {
-        perror("bind");
+        if (errno == EADDRINUSE) {
+            fprintf(stderr, "Error: Port %d already in use.", webserver->port);
+        } else {
+            perror("bind");
+        }
+
         close(webserver->socket);
         return false;
     }

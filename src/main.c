@@ -37,7 +37,7 @@ void post_test(Request *request, Response response)
     send_request(&response, request->body);
 }
 
-int main()
+int mai1n()
 {
     initialise_webserver_framework();
     webserver = create_webserver();

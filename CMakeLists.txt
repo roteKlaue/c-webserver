@@ -27,6 +27,10 @@ add_executable(${PROJECT_NAME} src/main.c
         src/util/ArrayList.h
         src/util/LinkedList.c
         src/util/LinkedList.h
-        src/multithreading/threads.h)
+        src/multithreading/threads.h
+        src/multithreading/FixedThreadPool.c
+        src/multithreading/FixedThreadPool.h
+        src/webserver/middleware/static-hosting.c
+        src/webserver/middleware/static-hosting.h)
 
 target_link_libraries(C-Webserver PRIVATE ws2_32)
