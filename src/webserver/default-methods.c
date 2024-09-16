@@ -20,12 +20,12 @@ void default_not_found_function(Request *request, Response *response)
     strcpy(result, prefix);
     strcat(result, path);
 
-    send_request(response, result);
+    send_response(response, result);
     free(result);
 }
 
 void default_internal_server_error(Request *request, Response *response, const char *_error)
 {
     set_status_code(response, INTERNAL_SERVER_ERROR);
-    send_request(response, "internal server error");
+    send_response(response, "internal server error");
 }

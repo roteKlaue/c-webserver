@@ -12,7 +12,9 @@ const char *HTML_TYPE = "text/html";
 const char *XML_TYPE = "application/xml";
 const char *CSS_TYPE = "text/css";
 const char *JS_TYPE = "application/javascript";
-const char *UNKNOWN_TYPE = "unknown";
+const char *JPG_TYPE = "image/jpeg";
+const char *PNG_TYPE = "image/png";
+const char *UNKNOWN_TYPE = "application/octet-stream";
 
 const char* ContentType_to_string(enum ContentType content_type)
 {
@@ -29,6 +31,10 @@ const char* ContentType_to_string(enum ContentType content_type)
             return XML_TYPE;
         case CSS:
             return CSS_TYPE;
+        case JPG:
+            return  JPG_TYPE;
+        case PNG:
+            return PNG_TYPE;
         default:
             return UNKNOWN_TYPE;
     }

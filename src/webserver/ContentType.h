@@ -16,6 +16,8 @@ enum ContentType {
     XML,   /**< Represents application/xml */
     CSS,   /**< Represents text/css */
     JS,    /**< Represents application/javascript */
+    JPG,    /**< Represents image/jpeg */
+    PNG,    /**< Represents image/png */
     UNKNOWN
 };
 

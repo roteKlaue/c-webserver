@@ -22,7 +22,7 @@ size_t digit_count(size_t number)
     return count;
 }
 
-void send_request(Response *response, char *content)
+void send_response(Response *response, char *content)
 {
     if (response == NULL || content == NULL)
     {
@@ -82,10 +82,10 @@ void send_request(Response *response, char *content)
     }
 }
 
-void json_request(Response *response, char *content)
+void json_response(Response *response, char *content)
 {
     response->contentType = JSON;
-    send_request(response, content);
+    send_response(response, content);
 }
 
 void set_content_type(Response *response, enum ContentType contentType)

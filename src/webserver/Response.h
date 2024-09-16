@@ -21,8 +21,8 @@ struct Response {
     int socket;
 };
 
-void send_request(Response *response, char *content);
-void json_request(Response *response, char *content);
+void send_response(Response *response, char *content);
+void json_response(Response *response, char *content);
 void set_content_type(Response *response, enum ContentType contentType);
 void set_status_code(Response *response, enum StatusCode statusCode);
 Response *create_response(int socket);
