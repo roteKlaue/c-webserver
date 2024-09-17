@@ -41,9 +41,13 @@ int main()
 {
     initialise_webserver_framework();
     webserver = create_webserver();
+    HashTable *games_router = create_routing_table();
 
     add_route(webserver->routes, Get, "/", &index_route);
     add_route(webserver->routes, Get, "/shutdown", &shutdown);
+
+    add_router(webserver->routes, "/games", games_router);
+    add_route(games_router, Get, "/index", &html_test);
 
     run_webserver(webserver);
     clean_up_webserver(webserver);

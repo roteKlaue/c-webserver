@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "string-util.h"
 
 int find_char_index(const char *src, char find_char)

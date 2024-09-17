@@ -10,16 +10,19 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-HashTable *routeToFileTable = NULL;
+HashTable *route_to_file_table = NULL;
+
+void initialise_static_routing_table()
+{
+    if (route_to_file_table == NULL)
+    {
+        route_to_file_table = create_table(30);
+    }
+}
 
 HashTable *create_static_hosting_router(const char *base_route)
 {
     if (!isFolder(base_route)) return NULL;
-
-    if (routeToFileTable == NULL)
-    {
-        routeToFileTable = create_table(30);
-    }
 
     HashTable *table = create_routing_table();
     if (table == NULL) return NULL;
@@ -53,7 +56,7 @@ HashTable *create_static_hosting_router(const char *base_route)
         if (isFolder(filePath)) {
             add_router(table, routerPath, create_static_hosting_router(filePath));
         } else {
-            insert_table(routeToFileTable, routerPath, filePath);
+            insert_table(route_to_file_table, routerPath, filePath);
             add_route(table, Get, routerPath, &in_between_function);
         }
 
@@ -66,12 +69,6 @@ HashTable *create_static_hosting_router(const char *base_route)
 
 ArrayList *list_directory(const char *path)
 {
-    if (!isFolder(path))
-    {
-        perror("Unable to open directory");
-        return NULL;
-    }
-
     DIR *dir = opendir(path);
     if (dir == NULL)
     {
@@ -111,7 +108,7 @@ bool isFolder(const char *path)
 void in_between_function(Request *request, Response *response)
 {
     const char *requested_path = get_last_path_segment(request->absolute_path);
-    char *file_path = (char *)search_table(routeToFileTable, requested_path);
+    char *file_path = (char *)search_table(route_to_file_table, requested_path);
 
     if (file_path == NULL) {
         set_status_code(response, NOT_FOUND);
@@ -168,4 +165,12 @@ const char* get_last_path_segment(const char *requested_path)
 {
     const char *last_slash = strrchr(requested_path, '/');
     return (last_slash != NULL) ? last_slash + 1 : requested_path;
+}
+
+void cleanup_static_routing_table()
+{
+    if (route_to_file_table != NULL)
+    {
+        free(route_to_file_table);
+    }
 }

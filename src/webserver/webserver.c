@@ -3,6 +3,7 @@
 //
 
 #include <stdio.h>
+#include "./middleware/static-hosting.h"
 #include "../util/string-util.h"
 #include "webserver_headers.h"
 #include "../util/ArrayList.h"
@@ -30,25 +31,36 @@ void cleanup_winsock()
 }
 #endif
 
-bool initialised = false;
+static bool initialised = false;
 
 void initialise_webserver_framework()
-{ /* if later required add more initialization here */
+{
+    // If already initialized, return early
     if (initialised) return;
+
+    initialise_static_routing_table();
+
 #ifdef _WIN32
     initialize_winsock();
 #endif
+
     initialised = true;
 }
 
 void clean_up_webserver_framework()
-{ /* if later required add more cleanup here */
+{
+    // If not initialized, no need to clean up
     if (!initialised) return;
+
+    cleanup_static_routing_table();
+
 #ifdef _WIN32
     cleanup_winsock();
 #endif
+
     initialised = false;
 }
+
 
 
 const enum Method methods[] = {
@@ -64,6 +76,11 @@ const enum Method methods[] = {
 Webserver *create_webserver()
 {
     Webserver *webserver = malloc(sizeof(Webserver));
+    if (!webserver) {
+        perror("Failed to allocate memory for webserver");
+        return NULL;
+    }
+
     webserver->internal_server_error = &default_internal_server_error;
     webserver->not_found = &default_not_found_function;
     webserver->buffer_size = DEFAULT_BUFFER_SIZE;
@@ -71,12 +88,19 @@ Webserver *create_webserver()
     webserver->continue_running = true;
     webserver->port = DEFAULT_PORT;
     webserver->socket = -1;
+
     return webserver;
 }
 
 HashTable *create_routing_table()
 {
     HashTable *routing_table = create_table(10);
+
+    if (!routing_table) {
+        perror("Failed to create routing table");
+        return NULL;
+    }
+
     for (int i = 0; i < NUM_METHODS; ++i)
     {
         insert_table(routing_table,
@@ -117,9 +141,91 @@ void free_routing_table(HashTable *routing_table)
     free_table(routing_table);
 }
 
+ArrayList *param_options(const char *total_path)
+{
+    ArrayList *list = create_default_arraylist();
+
+    int partsCount;
+    char **urlParts = string_split(total_path, '/', &partsCount);
+
+    for (int i = 1; i < partsCount; ++i) {
+        int total_length = 0;
+        for (int j = 0; j <= i; ++j) {
+            total_length += strlen(urlParts[j]) + 1;
+        }
+
+        char *part = malloc(total_length);
+        if (!part) {
+            free_string_parts(urlParts, partsCount);
+            return NULL;
+        }
+
+        part[0] = '\0';
+        for (int j = 0; j <= i; ++j) {
+            strcat(part, urlParts[j]);
+            if (j != i) {
+                strcat(part, "/");
+            }
+        }
+
+        add_arraylist(list, part);
+    }
+
+    free_string_parts(urlParts, partsCount);
+
+    return list;
+}
+
+bool search_in_routing_table(HashTable *table, Request *request, Response *response, const char* path)
+{
+    if (table == NULL || path == NULL)
+    {
+        return false;
+    }
+    HashTable *method_table = search_table(table, Method_to_string(request->method));
+
+    if (method_table != NULL)
+    {
+        RoutingEntry *entry = search_table(method_table, path);
+        if (entry != NULL)
+        {
+            ((void (*)(Request *, Response *)) entry->data)(request, response);
+            return true;
+        }
+    }
+
+    HashTable *routers = search_table(table, "ROUTERS");
+    if (!routers) return false;
+
+    ArrayList *list = param_options(path);
+    if (!list) return false;
+
+    bool found = false;
+    for (int i = 0; i < list->size; ++i) {
+        char *key = list->elements[i];
+        size_t partLength = strlen(key);
+        char *sub = substring(path, partLength, strlen(path));
+
+        found = search_in_routing_table(((RoutingEntry *) search_table(routers, key))->data, request, response, sub);
+        free(sub);
+
+        if (found) break;
+    }
+
+    free_arraylist(list);
+    return found;
+}
+
 void handle_client(int client_socket, Webserver *webserver)
 {
     char *buffer = (char *)malloc(sizeof(char) * webserver->buffer_size);
+    if (!buffer)
+    {
+        perror("Failed to allocate memory for buffer");
+        close(client_socket);
+        return;
+    }
+
     int bytes_read;
 
     bytes_read = recv(client_socket, buffer, webserver->buffer_size - 1, 0);
@@ -134,42 +240,32 @@ void handle_client(int client_socket, Webserver *webserver)
 
     char method[16], path[256], version[16];
     sscanf(buffer, "%s %s %s", method, path, version);
+
     char *absolute_path = strcpy_until_char(malloc(sizeof(char) * (strlen(path) + 1)), path, '?');
+    if (!absolute_path)
+    {
+        close(client_socket);
+        free(buffer);
+        return;
+    }
 
     char *body = strstr(buffer, "\r\n\r\n");
-    if (body)
-    {
-        body += 4;
-    }
+    if (body) body += 4;
 
     HashTable *query_params = create_table(10);
     parse_url_params(query_params, path);
-
-    HashTable *request_path_map = (HashTable *)search_table(webserver->routes, method);
 
     Request *request = create_request(webserver->port, path, absolute_path,
                                       NULL, string_to_method(method),
                                       query_params, body);
     Response *response = create_response(client_socket);
 
-    if (request_path_map == NULL)
+    bool found = search_in_routing_table(webserver->routes, request, response, absolute_path);
+
+    if (!found)
     {
         webserver->not_found(request, response);
-        return;
     }
-
-    HashTable *routers = search_table(request_path_map, "ROUTERS");
-    ArrayList *list = create_default_arraylist();
-
-    RoutingEntry *entry = search_table(request_path_map, absolute_path);
-
-    if (entry == NULL)
-    {
-        webserver->not_found(request, response);
-        return;
-    }
-
-    ((void (*)(Request *, Response *)) entry->data)(request, response);
 
     if (response->error != null)
     {
@@ -190,9 +286,11 @@ bool run_webserver(Webserver *webserver)
         return false;
     }
 
-    int client_socket;
-    struct sockaddr_in server_addr, client_addr;
-    socklen_t client_addr_len = sizeof(client_addr);
+    struct sockaddr_in server_addr = {
+            .sin_family = AF_INET,
+            .sin_addr.s_addr = INADDR_ANY,
+            .sin_port = htons(webserver->port)
+    };
 
     webserver->socket = (int) socket(AF_INET, SOCK_STREAM, 0);
     if (webserver->socket < 0)
@@ -201,9 +299,6 @@ bool run_webserver(Webserver *webserver)
         return false;
     }
 
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = INADDR_ANY;
-    server_addr.sin_port = htons(webserver->port);
     if (bind(webserver->socket, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
     {
         if (errno == EADDRINUSE) {
@@ -227,7 +322,7 @@ bool run_webserver(Webserver *webserver)
 
     while (webserver->continue_running)
     {
-        client_socket = (int) accept(webserver->socket, (struct sockaddr *)&client_addr, &client_addr_len);
+        int client_socket = accept(webserver->socket, NULL, NULL);
         if (client_socket < 0)
         {
             perror("accept");
@@ -255,7 +350,13 @@ void free_webserver(Webserver *webserver)
 
 RoutingEntry *create_routingentry(void *val, RoutingEntryType type)
 {
-    RoutingEntry *routing_entry = malloc(sizeof(RoutingEntry *));
+    RoutingEntry *routing_entry = malloc(sizeof(RoutingEntry));
+
+    if (!routing_entry) {
+        perror("Failed to allocate memory for routing entry");
+        return NULL;
+    }
+
     routing_entry->type = type;
     routing_entry->data = val;
     return routing_entry;
@@ -264,6 +365,8 @@ RoutingEntry *create_routingentry(void *val, RoutingEntryType type)
 void insert_helper(HashTable *routing_table, const char *method, const char *route, void *val, RoutingEntryType type)
 {
     char *lower_route = to_lowercase(route);
+    if (!lower_route) return;
+
     insert_table(search_table(routing_table, method), lower_route, create_routingentry(val, type));
     free(lower_route);
 }
@@ -281,9 +384,11 @@ void add_router(HashTable *routing_table, const char *default_route, HashTable *
 
 void free_routingentry(RoutingEntry *entry)
 {
-    if (entry->type == ROUTER)
-    {
+    if (!entry) return;
+
+    if (entry->type == ROUTER) {
         free_routing_table(entry->data);
     }
+
     free(entry);
 }
