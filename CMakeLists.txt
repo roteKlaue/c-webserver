@@ -4,8 +4,6 @@ project(C-Webserver C)
 add_executable(${PROJECT_NAME} src/main.c
         src/webserver/webserver.c
         src/webserver/webserver.h
-        src/util/HashTable.c
-        src/util/HashTable.h
         src/webserver/Request.c
         src/webserver/Request.h
         src/webserver/Response.c
@@ -16,21 +14,25 @@ add_executable(${PROJECT_NAME} src/main.c
         src/webserver/ContentType.c
         src/webserver/param-util.c
         src/webserver/param-util.h
-        src/util/string-util.c
-        src/util/string-util.h
         src/webserver/StatusCode.c
         src/webserver/StatusCode.h
         src/webserver/webserver_headers.h
         src/webserver/default-methods.c
         src/webserver/default-methods.h
+        src/util/HashTable.c
+        src/util/HashTable.h
+        src/util/string-util.c
+        src/util/string-util.h
         src/util/ArrayList.c
         src/util/ArrayList.h
         src/util/LinkedList.c
         src/util/LinkedList.h
-        src/multithreading/threads.h
-        src/multithreading/FixedThreadPool.c
-        src/multithreading/FixedThreadPool.h
         src/webserver/middleware/static-hosting.c
-        src/webserver/middleware/static-hosting.h)
+        src/webserver/middleware/static-hosting.h
+        src/multithreading/threads.h
+        src/multithreading/Task.c
+        src/multithreading/Task.h
+        src/multithreading/ThreadPool.c
+        src/multithreading/ThreadPool.h)
 
 target_link_libraries(C-Webserver PRIVATE ws2_32)

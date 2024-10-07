@@ -121,7 +121,7 @@ int index_of_linkedlist(LinkedList *list, void *element)
     if (list == NULL || list->start_element == NULL) return -1;
 
     ListEntry *entry = list->start_element;
-    for (int i = 0; entry!=NULL; i++) {
+    for (int i = 0; entry!=NULL; ++i) {
         if (list->element_equals)
         {
             if (list->element_equals(element, entry->value))
@@ -142,7 +142,7 @@ int last_index_of_linkedlist(LinkedList *list, void *element)
 
     ListEntry *entry = list->start_element;
     int index = -1;
-    for (int i = 0; entry != NULL; i++) {
+    for (int i = 0; entry != NULL; ++i) {
         if (list->element_equals) {
             if (list->element_equals(element, entry->value)) {
                 index = i;

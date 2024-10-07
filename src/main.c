@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "webserver/webserver.h"
+#include "webserver/middleware/static-hosting.h"
 
 Webserver *webserver;
 
@@ -8,7 +9,7 @@ void index_route(Request *request, Response *response)
     send_response(response, "Hello, World!");
 }
 
-void shutdown(Request *request, Response *response)
+void shutdown_server(Request *request, Response *response)
 {
     webserver->continue_running = false;
     send_response(response, "Shutting down");
@@ -37,17 +38,19 @@ void post_test(Request *request, Response response)
     send_response(&response, request->body);
 }
 
-int main()
+int main1()
 {
     initialise_webserver_framework();
     webserver = create_webserver();
     HashTable *games_router = create_routing_table();
 
     add_route(webserver->routes, Get, "/", &index_route);
-    add_route(webserver->routes, Get, "/shutdown", &shutdown);
+    add_route(webserver->routes, Get, "/shutdown", &shutdown_server);
 
     add_router(webserver->routes, "/games", games_router);
+    add_route(games_router, Get, "/", &html_test);
     add_route(games_router, Get, "/index", &html_test);
+    add_route(games_router, Get, "/index.html", &html_test);
 
     run_webserver(webserver);
     clean_up_webserver(webserver);
@@ -55,3 +58,12 @@ int main()
 
     return 0;
 }
+
+#include "./multithreading/threads.h"
+
+int main() {
+    thread_sleep(2);
+    thread_usleep(500000);
+    return 0;
+}
+

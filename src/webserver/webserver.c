@@ -6,7 +6,6 @@
 #include "./middleware/static-hosting.h"
 #include "../util/string-util.h"
 #include "webserver_headers.h"
-#include "../util/ArrayList.h"
 #include "default-methods.h"
 #include "param-util.h"
 #include "webserver.h"
@@ -205,6 +204,13 @@ bool search_in_routing_table(HashTable *table, Request *request, Response *respo
         char *key = list->elements[i];
         size_t partLength = strlen(key);
         char *sub = substring(path, partLength, strlen(path));
+
+        if (sub == NULL)
+        {
+            sub = malloc(sizeof(char) * 2);
+            sub[0] = '/';
+            sub[1] = '\0';
+        }
 
         found = search_in_routing_table(((RoutingEntry *) search_table(routers, key))->data, request, response, sub);
         free(sub);

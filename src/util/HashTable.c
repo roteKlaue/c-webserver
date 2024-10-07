@@ -31,7 +31,7 @@ HashTable* create_table(const int initial_capacity)
         return NULL;
     }
 
-    for (int i = 0; i < initial_capacity; i++) {
+    for (int i = 0; i < initial_capacity; ++i) {
         table->entries[i] = NULL;
     }
 
@@ -138,11 +138,11 @@ void resize_table(HashTable *table)
 
     const int new_capacity = table->capacity * 2;
     TableEntry **new_entries = malloc(sizeof(TableEntry*) * new_capacity);
-    for (int i = 0; i < new_capacity; i++) {
+    for (int i = 0; i < new_capacity; ++i) {
         new_entries[i] = NULL;
     }
 
-    for (int i = 0; i < table->capacity; i++) {
+    for (int i = 0; i < table->capacity; ++i) {
         TableEntry *entry = table->entries[i];
         while (entry != NULL) {
             TableEntry *next = entry->next;
@@ -162,7 +162,7 @@ void free_table(HashTable *table)
 {
     if (table == NULL) return;
 
-    for (int i = 0; i < table->capacity; i++) {
+    for (int i = 0; i < table->capacity; ++i) {
         TableEntry *entry = table->entries[i];
         while (entry != NULL) {
             TableEntry *next = entry->next;
@@ -182,7 +182,7 @@ char **table_keys(const HashTable *table, int *key_count)
     char **key_array = malloc(sizeof(char *) * table->size);
     int count = 0;
 
-    for (int i = 0; i < table->capacity; i++) {
+    for (int i = 0; i < table->capacity; ++i) {
         TableEntry *entry = table->entries[i];
 
         while (entry != NULL) {
@@ -200,9 +200,10 @@ void free_table_keys(char **keys, int key_count)
 {
     if (keys == NULL) return;
 
-    for (int i = 0; i < key_count; i++) {
+    for (int i = 0; i < key_count; ++i) {
         free(keys[i]);
     }
+
     free(keys);
 }
 
@@ -216,11 +217,11 @@ void shrink_table(HashTable *table)
     TableEntry **new_entries = malloc(sizeof(TableEntry*) * new_capacity);
     if (new_entries == NULL) return;
 
-    for (int i = 0; i < new_capacity; i++) {
+    for (int i = 0; i < new_capacity; ++i) {
         new_entries[i] = NULL;
     }
 
-    for (int i = 0; i < table->capacity; i++) {
+    for (int i = 0; i < table->capacity; ++i) {
         TableEntry *entry = table->entries[i];
         while (entry != NULL) {
             TableEntry *next = entry->next;

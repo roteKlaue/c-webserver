@@ -61,7 +61,7 @@ void free_arraylist(ArrayList *list)
     if(list == NULL) return;
 
     if (list->destroy_element) {
-        for (int i = 0; i < list->size; i++) {
+        for (int i = 0; i < list->size; ++i) {
             list->destroy_element(list->elements[i]);
         }
     }
@@ -88,7 +88,7 @@ bool remove_arraylist(ArrayList *list, int index)
         return false;
     }
 
-    for (int i = index; i < list->size - 1; i++) {
+    for (int i = index; i < list->size - 1; ++i) {
         list->elements[i] = list->elements[i + 1];
     }
 
@@ -106,7 +106,7 @@ bool insert_arraylist(ArrayList *list, void *element, int index)
         if (!resize_arraylist(list)) return false;
     }
 
-    for (int i = list->size; i > index; i--) {
+    for (int i = list->size; i > index; --i) {
         list->elements[i] = list->elements[i - 1];
     }
 
@@ -125,11 +125,11 @@ int index_of_arraylist(ArrayList *list, void *element)
     if(list == NULL) return -1;
 
     if (element == NULL || list->element_equals == NULL) {
-        for (int i = 0; i < list->size; i++)
+        for (int i = 0; i < list->size; ++i)
             if (list->elements[i]==element)
                 return i;
     } else {
-        for (int i = 0; i < list->size; i++)
+        for (int i = 0; i < list->size; ++i)
             if (list->element_equals(list->elements[i], element))
                 return i;
     }
@@ -140,11 +140,11 @@ int last_index_of_arraylist(ArrayList *list, void *element) {
     if(list == NULL) return -1;
 
     if (element == NULL || list->element_equals == NULL) {
-        for (int i = list->size-1; i >= 0; i--)
+        for (int i = list->size-1; i >= 0; --i)
             if (list->elements[i]==element)
                 return i;
     } else {
-        for (int i = list->size-1; i >= 0; i--)
+        for (int i = list->size-1; i >= 0; --i)
             if (list->element_equals(list->elements[i], element))
                 return i;
     }
