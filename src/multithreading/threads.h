@@ -17,9 +17,9 @@
     #include <process.h>
 
     // Define pthread types for Windows
-    #define pthread_t HANDLE
-    #define pthread_mutex_t CRITICAL_SECTION
-    #define pthread_cond_t CONDITION_VARIABLE
+    typedef HANDLE pthread_t;
+    typedef CRITICAL_SECTION pthread_mutex_t;
+    typedef CONDITION_VARIABLE pthread_cond_t;
 
     // Create thread wrapper for Windows
     static inline int pthread_create(pthread_t *thread, void *attr, unsigned int (__stdcall *start_routine)(void *), void *arg)
@@ -42,6 +42,36 @@
             return -1;  // Indicate error
         }
         CloseHandle(thread);  // Close thread handle after join
+        return 0;
+    }
+
+    static inline int pthread_cond_init(pthread_cond_t *cond, const void *attr)
+    {
+        InitializeConditionVariable(cond);
+        return 0;
+    }
+
+    static inline int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex)
+    {
+        return SleepConditionVariableCS(cond, mutex, INFINITE) ? 0 : -1;
+    }
+
+    static inline int pthread_cond_signal(pthread_cond_t *cond)
+    {
+        WakeConditionVariable(cond);
+        return 0;
+    }
+
+    static inline int pthread_cond_broadcast(pthread_cond_t *cond)
+    {
+        WakeAllConditionVariable(cond);
+        return 0;
+    }
+
+    static inline int pthread_cond_destroy(pthread_cond_t *cond)
+    {
+        // No specific destroy function for condition variables in Windows
+        // This function is included for compatibility with the pthreads API.
         return 0;
     }
 

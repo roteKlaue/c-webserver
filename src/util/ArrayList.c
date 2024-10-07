@@ -42,7 +42,7 @@ ArrayList *create_arraylist(int init_size)
 
 ArrayList *create_default_arraylist()
 {
-    return create_arraylist(DEFAULT_CAPACITY);
+    return create_arraylist(ARRAYLIST_DEFAULT_CAPACITY);
 }
 
 void *get_arraylist(ArrayList *list, int index)
@@ -154,10 +154,10 @@ int last_index_of_arraylist(ArrayList *list, void *element) {
 bool shrink_arraylist(ArrayList *list) {
     if(list == NULL) return false;
 
-    if (list->size > list->capacity * LOAD_FACTOR || list->capacity <= MINIMUM_CAPACITY) return true;
+    if (list->size > list->capacity * ARRAYLIST_LOAD_FACTOR || list->capacity <= ARRAYLIST_MINIMUM_CAPACITY) return true;
 
     int new_capacity = list->capacity / 2;
-    if (new_capacity < MINIMUM_CAPACITY) new_capacity = MINIMUM_CAPACITY;
+    if (new_capacity < ARRAYLIST_MINIMUM_CAPACITY) new_capacity = ARRAYLIST_MINIMUM_CAPACITY;
 
     void **new_elements = realloc(list->elements, sizeof(void *) * new_capacity);
 

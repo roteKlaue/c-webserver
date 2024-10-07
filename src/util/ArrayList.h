@@ -7,9 +7,9 @@
 
 #include <stdbool.h>
 
-#define LOAD_FACTOR 0.75
-#define DEFAULT_CAPACITY 10
-#define MINIMUM_CAPACITY 10
+#define ARRAYLIST_LOAD_FACTOR 0.75
+#define ARRAYLIST_DEFAULT_CAPACITY 10
+#define ARRAYLIST_MINIMUM_CAPACITY 10
 
 typedef struct {
     int size;

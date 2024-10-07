@@ -3,8 +3,8 @@
 //
 
 #include "ThreadPool.h"
+#include "threads.h"
 #include <stdlib.h>
-#include <pthread.h>
 
 static unsigned int threadpool_worker(void *arg) {
     ThreadPool *pool = (ThreadPool *)arg;

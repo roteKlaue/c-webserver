@@ -127,7 +127,7 @@ void delete_table(HashTable *table, const char *key)
     free(entry);
     table->size--;
 
-    if ((float)table->size / (float)table->capacity <= SHRINK_THRESHOLD) {
+    if ((float)table->size / (float)table->capacity <= HASHTABLE_SHRINK_THRESHOLD) {
         shrink_table(table);
     }
 }
@@ -209,10 +209,10 @@ void free_table_keys(char **keys, int key_count)
 
 void shrink_table(HashTable *table)
 {
-    if (table == NULL || table->capacity <= MINIMUM_CAPACITY) return;
+    if (table == NULL || table->capacity <= HASHTABLE_MINIMUM_CAPACITY) return;
 
     const int new_capacity = table->capacity / 2;
-    if (new_capacity < MINIMUM_CAPACITY) return;
+    if (new_capacity < HASHTABLE_MINIMUM_CAPACITY) return;
 
     TableEntry **new_entries = malloc(sizeof(TableEntry*) * new_capacity);
     if (new_entries == NULL) return;
