@@ -8,11 +8,13 @@
 LinkedList *create_linkedlist()
 {
     LinkedList *list = malloc(sizeof(LinkedList));
-    if (!list) return NULL;
+    if (list == NULL) return NULL;
+
     list->size = 0;
     list->start_element = NULL;
     list->destroy_element = free;
     list->element_equals = NULL;
+
     return list;
 }
 

@@ -25,8 +25,8 @@ void parse_url_params(HashTable *table, const char *url)
 
     while (pair != NULL)
     {
-        char *key = strtok(pair, "=");
-        char *value = strtok(NULL, "");
+        const char *key = strtok(pair, "=");
+        const char *value = strtok(NULL, "");
 
         if (key && value) {
             insert_table(table, key, strdup(value));

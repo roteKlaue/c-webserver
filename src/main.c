@@ -38,7 +38,7 @@ void post_test(Request *request, Response response)
     send_response(&response, request->body);
 }
 
-int main1()
+int main()
 {
     initialise_webserver_framework();
     webserver = create_webserver();
@@ -58,12 +58,3 @@ int main1()
 
     return 0;
 }
-
-#include "./multithreading/threads.h"
-
-int main() {
-    thread_sleep(2);
-    thread_usleep(500000);
-    return 0;
-}
-

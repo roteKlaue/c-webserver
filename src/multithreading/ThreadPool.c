@@ -7,7 +7,7 @@
 #include <stdlib.h>
 
 static unsigned int threadpool_worker(void *arg) {
-    ThreadPool *pool = (ThreadPool *)arg;
+    ThreadPool *pool = arg;
 
     while (true) {
         pthread_mutex_lock(&pool->lock);
@@ -24,7 +24,7 @@ static unsigned int threadpool_worker(void *arg) {
         Task *task = pool->task_queue_head;
         if (task) {
             pool->task_queue_head = task->next;
-            if (!pool->task_queue_head) {
+            if (pool->task_queue_head == NULL) {
                 pool->task_queue_tail = NULL;
             }
             pool->queue_size--;
@@ -41,11 +41,11 @@ static unsigned int threadpool_worker(void *arg) {
     pthread_exit(NULL);
 }
 
-ThreadPool *threadpool_create(int num_threads) {
+ThreadPool *threadpool_create(const int num_threads) {
     if (num_threads <= 0) return NULL;
 
-    ThreadPool *pool = (ThreadPool *)malloc(sizeof(ThreadPool));
-    if (!pool) return NULL;
+    ThreadPool *pool = malloc(sizeof(ThreadPool));
+    if (pool == NULL) return NULL;
 
     pool->thread_count = num_threads;
     pool->queue_size = 0;
@@ -54,7 +54,7 @@ ThreadPool *threadpool_create(int num_threads) {
     pool->stop = false;
 
     pool->threads = (pthread_t *)malloc(num_threads * sizeof(pthread_t));
-    if (!pool->threads) {
+    if (pool->threads == NULL) {
         free(pool);
         return NULL;
     }
@@ -73,11 +73,11 @@ ThreadPool *threadpool_create(int num_threads) {
     return pool;
 }
 
-bool threadpool_add_task(ThreadPool *pool, task_function func, void *arg) {
-    if (!pool || !func) return false;
+bool threadpool_add_task(ThreadPool *pool, const task_function func, void *arg) {
+    if (pool == NULL || func == NULL) return false;
 
     Task *task = create_task(func, arg);
-    if (!task) return false;
+    if (task == NULL) return false;
 
     pthread_mutex_lock(&pool->lock);
 
@@ -96,7 +96,7 @@ bool threadpool_add_task(ThreadPool *pool, task_function func, void *arg) {
 }
 
 void threadpool_destroy(ThreadPool *pool) {
-    if (!pool) return;
+    if (pool == NULL) return;
 
     pthread_mutex_lock(&pool->lock);
     pool->stop = true;

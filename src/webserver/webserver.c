@@ -2,6 +2,9 @@
 // Created by xxrot on 02.09.2024.
 //
 
+#include <errno.h>
+#include <string.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include "./middleware/static-hosting.h"
 #include "../util/string-util.h"
@@ -75,7 +78,7 @@ const enum Method methods[] = {
 Webserver *create_webserver()
 {
     Webserver *webserver = malloc(sizeof(Webserver));
-    if (!webserver) {
+    if (webserver == null) {
         perror("Failed to allocate memory for webserver");
         return NULL;
     }
@@ -95,7 +98,7 @@ HashTable *create_routing_table()
 {
     HashTable *routing_table = create_table(10);
 
-    if (!routing_table) {
+    if (routing_table == null) {
         perror("Failed to create routing table");
         return NULL;
     }
@@ -154,7 +157,7 @@ ArrayList *param_options(const char *total_path)
         }
 
         char *part = malloc(total_length);
-        if (!part) {
+        if (part == null) {
             free_string_parts(urlParts, partsCount);
             return NULL;
         }
@@ -181,7 +184,7 @@ bool search_in_routing_table(HashTable *table, Request *request, Response *respo
     {
         return false;
     }
-    HashTable *method_table = search_table(table, Method_to_string(request->method));
+    const HashTable *method_table = search_table(table, Method_to_string(request->method));
 
     if (method_table != NULL)
     {
@@ -193,11 +196,11 @@ bool search_in_routing_table(HashTable *table, Request *request, Response *respo
         }
     }
 
-    HashTable *routers = search_table(table, "ROUTERS");
-    if (!routers) return false;
+    const HashTable *routers = search_table(table, "ROUTERS");
+    if (routers == null) return false;
 
     ArrayList *list = param_options(path);
-    if (!list) return false;
+    if (list == null) return false;
 
     bool found = false;
     for (int i = 0; i < list->size; ++i) {
@@ -212,7 +215,12 @@ bool search_in_routing_table(HashTable *table, Request *request, Response *respo
             sub[1] = '\0';
         }
 
-        found = search_in_routing_table(((RoutingEntry *) search_table(routers, key))->data, request, response, sub);
+        RoutingEntry *routing_entry = search_table(routers, key);
+
+        if (routing_entry != null) {
+            found = search_in_routing_table(routing_entry->data, request, response, sub);
+        }
+
         free(sub);
 
         if (found) break;
@@ -222,19 +230,18 @@ bool search_in_routing_table(HashTable *table, Request *request, Response *respo
     return found;
 }
 
-void handle_client(int client_socket, Webserver *webserver)
+void handle_client(int client_socket, const Webserver *webserver)
 {
-    char *buffer = (char *)malloc(sizeof(char) * webserver->buffer_size);
-    if (!buffer)
+    char *buffer = malloc(sizeof(char) * webserver->buffer_size);
+    if (buffer == null)
     {
         perror("Failed to allocate memory for buffer");
         close(client_socket);
         return;
     }
 
-    int bytes_read;
+    const int bytes_read = recv(client_socket, buffer, webserver->buffer_size - 1, 0);
 
-    bytes_read = recv(client_socket, buffer, webserver->buffer_size - 1, 0);
     if (bytes_read < 0)
     {
         perror("recv");
@@ -248,7 +255,7 @@ void handle_client(int client_socket, Webserver *webserver)
     sscanf(buffer, "%s %s %s", method, path, version);
 
     char *absolute_path = strcpy_until_char(malloc(sizeof(char) * (strlen(path) + 1)), path, '?');
-    if (!absolute_path)
+    if (absolute_path == null)
     {
         close(client_socket);
         free(buffer);
@@ -328,7 +335,7 @@ bool run_webserver(Webserver *webserver)
 
     while (webserver->continue_running)
     {
-        int client_socket = accept(webserver->socket, NULL, NULL);
+        const int client_socket = accept(webserver->socket, NULL, NULL);
         if (client_socket < 0)
         {
             perror("accept");
@@ -358,7 +365,7 @@ RoutingEntry *create_routingentry(void *val, RoutingEntryType type)
 {
     RoutingEntry *routing_entry = malloc(sizeof(RoutingEntry));
 
-    if (!routing_entry) {
+    if (routing_entry == null) {
         perror("Failed to allocate memory for routing entry");
         return NULL;
     }
@@ -371,7 +378,7 @@ RoutingEntry *create_routingentry(void *val, RoutingEntryType type)
 void insert_helper(HashTable *routing_table, const char *method, const char *route, void *val, RoutingEntryType type)
 {
     char *lower_route = to_lowercase(route);
-    if (!lower_route) return;
+    if (lower_route == null) return;
 
     insert_table(search_table(routing_table, method), lower_route, create_routingentry(val, type));
     free(lower_route);
@@ -390,7 +397,7 @@ void add_router(HashTable *routing_table, const char *default_route, HashTable *
 
 void free_routingentry(RoutingEntry *entry)
 {
-    if (!entry) return;
+    if (entry == null) return;
 
     if (entry->type == ROUTER) {
         free_routing_table(entry->data);

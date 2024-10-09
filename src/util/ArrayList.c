@@ -9,10 +9,10 @@
 
 bool resize_arraylist(ArrayList *list)
 {
-    int new_capacity = list->capacity * 2;
+    const int new_capacity = list->capacity * 2;
     void **new_elements = realloc(list->elements, sizeof(void *) * new_capacity);
 
-    if (!new_elements) {
+    if (new_elements == NULL) {
         return false;
     }
 
@@ -21,14 +21,14 @@ bool resize_arraylist(ArrayList *list)
     return true;
 }
 
-ArrayList *create_arraylist(int init_size)
+ArrayList *create_arraylist(const int init_size)
 {
     ArrayList *list = malloc(sizeof(ArrayList));
-    if (!list) return NULL;
+    if (list == NULL) return NULL;
 
     list->elements = malloc(sizeof(void *) * init_size);
 
-    if (!list->elements) {
+    if (list->elements == NULL) {
         free(list);
         return NULL;
     }
@@ -45,7 +45,7 @@ ArrayList *create_default_arraylist()
     return create_arraylist(ARRAYLIST_DEFAULT_CAPACITY);
 }
 
-void *get_arraylist(ArrayList *list, int index)
+void *get_arraylist(ArrayList *list, const int index)
 {
     if (list == NULL || index < 0 || index >= list->size) return NULL;
     return list->elements[index];
@@ -82,7 +82,7 @@ bool add_arraylist(ArrayList *list, void *element)
     return true;
 }
 
-bool remove_arraylist(ArrayList *list, int index)
+bool remove_arraylist(ArrayList *list, const int index)
 {
     if (list == NULL || index < 0 || index >= list->size) {
         return false;
@@ -96,7 +96,7 @@ bool remove_arraylist(ArrayList *list, int index)
     return true;
 }
 
-bool insert_arraylist(ArrayList *list, void *element, int index)
+bool insert_arraylist(ArrayList *list, void *element, const int index)
 {
     if (list == NULL || index < 0 || index > list->size) {
         return false;
@@ -115,7 +115,7 @@ bool insert_arraylist(ArrayList *list, void *element, int index)
     return true;
 }
 
-int get_size_arraylist(ArrayList *list)
+int get_size_arraylist(const ArrayList *list)
 {
     return list->size;
 }
@@ -161,7 +161,7 @@ bool shrink_arraylist(ArrayList *list) {
 
     void **new_elements = realloc(list->elements, sizeof(void *) * new_capacity);
 
-    if (!new_elements) {
+    if (new_elements == NULL) {
         return false;
     }
 

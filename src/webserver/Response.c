@@ -31,13 +31,13 @@ void send_response(Response *response, char *content)
 
     const char *content_type = ContentType_to_string(response->contentType);
     const char *response_code = StatusCode_to_string(response->status_code);
-    size_t page_response_length = strlen(content);
-    size_t content_type_length = strlen(content_type);
-    size_t response_code_length = strlen(response_code);
-    size_t num_digits = digit_count(page_response_length);
-    size_t response_code_num_digits = digit_count((int) response->status_code);
+    const size_t page_response_length = strlen(content);
+    const size_t content_type_length = strlen(content_type);
+    const size_t response_code_length = strlen(response_code);
+    const size_t num_digits = digit_count(page_response_length);
+    const size_t response_code_num_digits = digit_count(response->status_code);
 
-    char *str_value = (char *) malloc(sizeof(char) * (num_digits + 1));
+    char *str_value = malloc(sizeof(char) * (num_digits + 1));
 
     if (str_value == NULL)
     {
@@ -52,8 +52,8 @@ void send_response(Response *response, char *content)
 
     sprintf(str_value, "%zu", page_response_length);
 
-    size_t response_length = strlen("HTTP/1.1  \r\nContent-Type: \r\nContent-Length: \r\n\r\n") + content_type_length + num_digits + page_response_length + response_code_length + response_code_num_digits + 1;
-    char *response_finished = (char *) malloc(response_length);
+    const size_t response_length = strlen("HTTP/1.1  \r\nContent-Type: \r\nContent-Length: \r\n\r\n") + content_type_length + num_digits + page_response_length + response_code_length + response_code_num_digits + 1;
+    char *response_finished = malloc(response_length);
 
     if (response_finished == NULL)
     {
@@ -69,7 +69,7 @@ void send_response(Response *response, char *content)
 
     snprintf(response_finished, response_length,
              "HTTP/1.1 %d %s\r\nContent-Type: %s\r\nContent-Length: %s\r\n\r\n%s",
-             (int) response->status_code, response_code, content_type, str_value, content);
+             response->status_code, response_code, content_type, str_value, content);
 
     send(response->socket, response_finished, (int) strlen(response_finished), 0);
     close(response->socket);
@@ -88,17 +88,17 @@ void json_response(Response *response, char *content)
     send_response(response, content);
 }
 
-void set_content_type(Response *response, enum ContentType contentType)
+void set_content_type(Response *response, const enum ContentType contentType)
 {
     response->contentType = contentType;
 }
 
-void set_status_code(Response *response, enum StatusCode statusCode)
+void set_status_code(Response *response, const enum StatusCode statusCode)
 {
     response->status_code = statusCode;
 }
 
-Response *create_response(int socket)
+Response *create_response(const int socket)
 {
     Response *response = malloc(sizeof(Response));
 

@@ -9,11 +9,11 @@
 void default_not_found_function(Request *request, Response *response)
 {
     const char *prefix = "404 not found: ";
-    char *path = request->absolute_path;
+    const char *path = request->absolute_path;
 
-    size_t result_length = strlen(prefix) + strlen(path) + 1;
+    const size_t result_length = strlen(prefix) + strlen(path) + 1;
 
-    char *result = (char *) malloc(result_length);
+    char *result = malloc(result_length);
 
     if (result == NULL) return;
 
