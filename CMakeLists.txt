@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 project(C-Webserver C)
 
-add_executable(${PROJECT_NAME} src/main.c
+add_executable(${PROJECT_NAME} src/example.c
         src/webserver/webserver.c
         src/webserver/webserver.h
         src/webserver/Request.c
@@ -19,6 +19,8 @@ add_executable(${PROJECT_NAME} src/main.c
         src/webserver/webserver_headers.h
         src/webserver/default-methods.c
         src/webserver/default-methods.h
+        src/webserver/middleware/static-hosting.c
+        src/webserver/middleware/static-hosting.h
         src/util/HashTable.c
         src/util/HashTable.h
         src/util/string-util.c
@@ -27,8 +29,6 @@ add_executable(${PROJECT_NAME} src/main.c
         src/util/ArrayList.h
         src/util/LinkedList.c
         src/util/LinkedList.h
-        src/webserver/middleware/static-hosting.c
-        src/webserver/middleware/static-hosting.h
         src/multithreading/threads.h
         src/multithreading/Task.c
         src/multithreading/Task.h

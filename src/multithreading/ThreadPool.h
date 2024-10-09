@@ -20,8 +20,8 @@ typedef struct ThreadPool {
     bool stop;
 } ThreadPool;
 
-ThreadPool *threadpool_create(int num_threads);
+ThreadPool *create_threadpool(int num_threads);
 bool threadpool_add_task(ThreadPool *pool, task_function func, void *arg);
-void threadpool_destroy(ThreadPool *pool);
+void destroy_threadpool(ThreadPool *pool);
 
 #endif //C_WEBSERVER_THREADPOOL_H

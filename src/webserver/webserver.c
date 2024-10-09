@@ -13,6 +13,7 @@
 #include "param-util.h"
 #include "webserver.h"
 #include "Method.h"
+#include "../multithreading/ThreadPool.h"
 
 #define null NULL
 
@@ -85,6 +86,7 @@ Webserver *create_webserver()
 
     webserver->internal_server_error = &default_internal_server_error;
     webserver->not_found = &default_not_found_function;
+    webserver->thread_count = DEFAULT_THREAD_COUNT;
     webserver->buffer_size = DEFAULT_BUFFER_SIZE;
     webserver->routes = create_routing_table();
     webserver->continue_running = true;
@@ -215,7 +217,7 @@ bool search_in_routing_table(HashTable *table, Request *request, Response *respo
             sub[1] = '\0';
         }
 
-        RoutingEntry *routing_entry = search_table(routers, key);
+        const RoutingEntry *routing_entry = search_table(routers, key);
 
         if (routing_entry != null) {
             found = search_in_routing_table(routing_entry->data, request, response, sub);
@@ -230,7 +232,7 @@ bool search_in_routing_table(HashTable *table, Request *request, Response *respo
     return found;
 }
 
-void handle_client(int client_socket, const Webserver *webserver)
+void handle_client(const int client_socket, const Webserver *webserver)
 {
     char *buffer = malloc(sizeof(char) * webserver->buffer_size);
     if (buffer == null)
@@ -291,6 +293,18 @@ void handle_client(int client_socket, const Webserver *webserver)
     free(buffer);
 }
 
+struct inter_holder {
+    int client_socket;
+    Webserver *webserver;
+};
+
+void inter_helper(void *arg)
+{
+    struct inter_holder *data = arg;
+    handle_client(data->client_socket, data->webserver);
+    free(data);
+}
+
 bool run_webserver(Webserver *webserver)
 {
     if (!initialised)
@@ -305,7 +319,7 @@ bool run_webserver(Webserver *webserver)
             .sin_port = htons(webserver->port)
     };
 
-    webserver->socket = (int) socket(AF_INET, SOCK_STREAM, 0);
+    webserver->socket = socket(AF_INET, SOCK_STREAM, 0);
     if (webserver->socket < 0)
     {
         perror("socket");
@@ -333,9 +347,14 @@ bool run_webserver(Webserver *webserver)
 
     printf("Server is listening on port %d\n", webserver->port);
 
+    ThreadPool *pool = null;
+    if (webserver->thread_count > 0) {
+        pool = create_threadpool(webserver->thread_count);
+    }
+
     while (webserver->continue_running)
     {
-        const int client_socket = accept(webserver->socket, NULL, NULL);
+        const int client_socket = accept(webserver->socket, null, null);
         if (client_socket < 0)
         {
             perror("accept");
@@ -343,7 +362,26 @@ bool run_webserver(Webserver *webserver)
             return false;
         }
 
-        handle_client(client_socket, webserver);
+        struct inter_holder *data = malloc(sizeof(struct inter_holder));
+
+        if (data == null) {
+            close(client_socket);
+            continue;
+        }
+
+        data->client_socket = client_socket;
+        data->webserver = webserver;
+
+        if (pool != null) {
+            const bool worked = threadpool_add_task(pool, inter_helper, data);
+            if (!worked) inter_helper(data);
+        } else {
+            inter_helper(data);
+        }
+    }
+
+    if (pool != null) {
+        destroy_threadpool(pool);
     }
 
     return true;
@@ -375,7 +413,7 @@ RoutingEntry *create_routingentry(void *val, RoutingEntryType type)
     return routing_entry;
 }
 
-void insert_helper(HashTable *routing_table, const char *method, const char *route, void *val, RoutingEntryType type)
+void insert_helper(HashTable *routing_table, const char *method, const char *route, void *val, const RoutingEntryType type)
 {
     char *lower_route = to_lowercase(route);
     if (lower_route == null) return;

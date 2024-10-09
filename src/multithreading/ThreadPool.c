@@ -41,7 +41,7 @@ static unsigned int threadpool_worker(void *arg) {
     pthread_exit(NULL);
 }
 
-ThreadPool *threadpool_create(const int num_threads) {
+ThreadPool *create_threadpool(const int num_threads) {
     if (num_threads <= 0) return NULL;
 
     ThreadPool *pool = malloc(sizeof(ThreadPool));
@@ -95,7 +95,7 @@ bool threadpool_add_task(ThreadPool *pool, const task_function func, void *arg) 
     return true;
 }
 
-void threadpool_destroy(ThreadPool *pool) {
+void destroy_threadpool(ThreadPool *pool) {
     if (pool == NULL) return;
 
     pthread_mutex_lock(&pool->lock);

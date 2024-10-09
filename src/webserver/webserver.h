@@ -10,6 +10,7 @@
 #include "Response.h"
 
 #define DEFAULT_BUFFER_SIZE 4096
+#define DEFAULT_THREAD_COUNT 4
 #define DEFAULT_PORT 4096
 
 typedef enum {
@@ -31,6 +32,7 @@ typedef struct {
     int port;
     int socket;
     int buffer_size;
+    int thread_count;
 } Webserver;
 
 void initialise_webserver_framework();
