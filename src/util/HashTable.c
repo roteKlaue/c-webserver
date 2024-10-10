@@ -40,6 +40,10 @@ HashTable* create_table(const int initial_capacity)
     return table;
 }
 
+HashTable *create_default_table() {
+    return create_table(HASTABLE_DEFAULT_SIZE);
+}
+
 TableEntry* create_entry(const char *key, void *value)
 {
     TableEntry *entry = malloc(sizeof(TableEntry));

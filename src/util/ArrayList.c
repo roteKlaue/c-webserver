@@ -5,8 +5,6 @@
 #include <stdlib.h>
 #include "ArrayList.h"
 
-// #define LOAD_FACTOR 0.75
-
 bool resize_arraylist(ArrayList *list)
 {
     const int new_capacity = list->capacity * 2;
@@ -168,4 +166,14 @@ bool shrink_arraylist(ArrayList *list) {
     list->elements = new_elements;
     list->capacity = new_capacity;
     return true;
+}
+
+void *find_arraylist(ArrayList *list, bool (*finder)(void *, int, ArrayList *)) {
+    if (list == NULL || finder == NULL) return NULL;
+
+    for (int i = 0; i < list->size; ++i) {
+        if (finder(list->elements[i], i, list)) return list->elements[i];
+    }
+
+    return NULL;
 }

@@ -30,6 +30,7 @@ bool resize_arraylist(ArrayList *list);
 int index_of_arraylist(ArrayList *list, void *element);
 int last_index_of_arraylist(ArrayList *list, void *element);
 bool shrink_arraylist(ArrayList *list);
+void *find_arraylist(ArrayList *list, bool (*finder)(void *, int, ArrayList *));
 void free_arraylist(ArrayList *list);
 
 #endif //C_WEBSERVER_ARRAYLIST_H

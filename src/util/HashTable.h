@@ -5,6 +5,7 @@
 #ifndef C_WEBSERVER_HASHTABLE_H
 #define C_WEBSERVER_HASHTABLE_H
 
+#define HASTABLE_DEFAULT_SIZE 10
 #define HASHTABLE_LOAD_FACTOR 0.75
 #define HASHTABLE_SHRINK_THRESHOLD 0.375
 #define HASHTABLE_MINIMUM_CAPACITY 8
@@ -24,6 +25,7 @@ typedef struct
 } HashTable;
 
 HashTable *create_table(int initial_capacity);
+HashTable *create_default_table();
 unsigned int hash(const char *key, int capacity);
 TableEntry *create_entry(const char *key, void *value);
 void insert_table(HashTable *table, const char *key, void *value);

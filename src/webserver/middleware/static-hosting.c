@@ -100,7 +100,7 @@ ArrayList *list_directory(const char *path)
 bool isFolder(const char *path)
 {
     DIR *dir = opendir(path);
-    if (!dir) return false;
+    if (dir == NULL) return false;
 
     closedir(dir);
     return true;
@@ -109,7 +109,7 @@ bool isFolder(const char *path)
 void in_between_function(Request *request, Response *response)
 {
     const char *requested_path = get_last_path_segment(request->absolute_path);
-    char *file_path = (char *)search_table(route_to_file_table, requested_path);
+    const char *file_path = search_table(route_to_file_table, requested_path);
 
     if (file_path == NULL) {
         set_status_code(response, NOT_FOUND);
@@ -119,13 +119,12 @@ void in_between_function(Request *request, Response *response)
 
     FILE *file = fopen(file_path, "rb");
     if (file == NULL) {
-        set_status_code(response, INTERNAL_SERVER_ERROR);
-        send_response(response, "Internal Server Error");
+        response->error = "Failed to open file.";
         return;
     }
 
     fseek(file, 0, SEEK_END);
-    long file_size = ftell(file);
+    const long file_size = ftell(file);
     fseek(file, 0, SEEK_SET);
 
     char *file_data = (char *)malloc(file_size + 1);

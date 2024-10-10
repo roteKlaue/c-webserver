@@ -41,7 +41,7 @@ void initialise_webserver_framework()
     // If already initialized, return early
     if (initialised) return;
 
-    initialise_static_routing_table();
+    // initialise_static_routing_table();
 
 #ifdef _WIN32
     initialize_winsock();
@@ -55,7 +55,7 @@ void clean_up_webserver_framework()
     // If not initialized, no need to clean up
     if (!initialised) return;
 
-    cleanup_static_routing_table();
+    // cleanup_static_routing_table();
 
 #ifdef _WIN32
     cleanup_winsock();
@@ -275,7 +275,7 @@ void handle_client(const int client_socket, const Webserver *webserver)
                                       query_params, body);
     Response *response = create_response(client_socket);
 
-    bool found = search_in_routing_table(webserver->routes, request, response, absolute_path);
+    const bool found = search_in_routing_table(webserver->routes, request, response, absolute_path);
 
     if (!found)
     {
@@ -405,7 +405,7 @@ RoutingEntry *create_routingentry(void *val, RoutingEntryType type)
 
     if (routing_entry == null) {
         perror("Failed to allocate memory for routing entry");
-        return NULL;
+        return null;
     }
 
     routing_entry->type = type;
