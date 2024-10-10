@@ -125,13 +125,20 @@ void in_between_function(Request *request, Response *response)
 
     fseek(file, 0, SEEK_END);
     const long file_size = ftell(file);
+
+    if (file_size < 0) {
+        fclose(file);
+        response->error = "Failed to open file.";
+        return;
+    }
+
     fseek(file, 0, SEEK_SET);
 
-    char *file_data = (char *)malloc(file_size + 1);
+    char *file_data = malloc(file_size + 1);
+
     if (file_data == NULL) {
         fclose(file);
-        set_status_code(response, INTERNAL_SERVER_ERROR);
-        send_response(response, "Internal Server Error");
+        response->error = "Failed to open file.";
         return;
     }
 

@@ -5,7 +5,6 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include "string-util.h"
 
 int find_char_index(const char *src, char find_char)
@@ -22,25 +21,26 @@ int find_char_index(const char *src, char find_char)
     return -1;
 }
 
-void copy_until_index(const char *src, char *dest, int index)
+void copy_until_index(const char *src, char *destination, const int index, const size_t destination_size)
 {
-    for (int i = 0; i < index; ++i) {
-        dest[i] = src[i];
+    const int copy_len = index < destination_size - 1 ? index : destination_size - 1;
+
+    for (int i = 0; i < copy_len; ++i) {
+        destination[i] = src[i];
     }
-    dest[index] = '\0';
+    destination[copy_len] = '\0';
 }
 
-char *strcpy_until_char(char *dest, const char *src, char stop_char)
+void string_copy_until_char(char *destination, const char *src, const char stop_char, const size_t destination_size)
 {
-    int index = find_char_index(src, stop_char);
+    const int index = find_char_index(src, stop_char);
 
     if (index == -1) {
-        strcpy(dest, src);
+        strncpy(destination, src, destination_size - 1);
+        destination[destination_size - 1] = '\0';
     } else {
-        copy_until_index(src, dest, index);
+        copy_until_index(src, destination, index, destination_size);
     }
-
-    return dest;
 }
 
 char *to_uppercase(const char *str)
@@ -64,7 +64,7 @@ char *to_lowercase(const char *str)
 }
 
 
-char *strcpy_after_char(char *dest, const char *src, char start_char)
+void string_copy_after_char(char *destination, const char *src, const char start_char, const size_t destination_size)
 {
     int start_index = find_char_index(src, start_char);
 
@@ -74,12 +74,10 @@ char *strcpy_after_char(char *dest, const char *src, char start_char)
         start_index = 0;
     }
 
-    copy_until_index(src + start_index, dest, strlen(src) - start_index);
-
-    return dest;
+    copy_until_index(src + start_index, destination, strlen(src) - start_index, destination_size);
 }
 
-char* substring(const char* str, int start, size_t length) {
+char* substring(const char* str, const int start, size_t length) {
     if (str == NULL || start < 0 || length <= 0 || start >= strlen(str)) {
         return NULL;
     }
@@ -89,7 +87,7 @@ char* substring(const char* str, int start, size_t length) {
         length = str_length - start;
     }
 
-    char* substr = (char*)malloc((length + 1) * sizeof(char));
+    char* substr = malloc((length + 1) * sizeof(char));
 
     if (substr == NULL) {
         return NULL;

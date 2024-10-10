@@ -256,7 +256,9 @@ void handle_client(const int client_socket, const Webserver *webserver)
     char method[16], path[256], version[16];
     sscanf(buffer, "%s %s %s", method, path, version);
 
-    char *absolute_path = strcpy_until_char(malloc(sizeof(char) * (strlen(path) + 1)), path, '?');
+    char *absolute_path = malloc(sizeof(char) * (strlen(path) + 1));
+    string_copy_until_char(absolute_path, path, '?', sizeof(absolute_path));
+
     if (absolute_path == null)
     {
         close(client_socket);

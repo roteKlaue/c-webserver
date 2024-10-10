@@ -21,6 +21,8 @@ add_executable(${PROJECT_NAME} src/example.c
         src/webserver/default-methods.h
         src/webserver/middleware/static-hosting.c
         src/webserver/middleware/static-hosting.h
+        src/webserver/middleware/body-parser.c
+        src/webserver/middleware/body-parser.h
         src/util/HashTable.c
         src/util/HashTable.h
         src/util/string-util.c

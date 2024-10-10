@@ -7,9 +7,7 @@
 #include "body-parser.h"
 #include <stdlib.h>
 
-
-
-BodyData *create_body_data(DataType data)
+BodyData *create_body_data(const DataType data)
 {
     BodyData *body_data = malloc(sizeof(BodyData));
     if (body_data == NULL) return NULL;
