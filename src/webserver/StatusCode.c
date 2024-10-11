@@ -4,7 +4,7 @@
 
 #include "StatusCode.h"
 
-const char* StatusCode_to_string(enum StatusCode status_code)
+const char* StatusCode_to_string(const enum StatusCode status_code)
 {
     switch (status_code) {
         case CONTINUE:

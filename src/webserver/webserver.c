@@ -124,7 +124,7 @@ void free_entry(HashTable *routing_table_entry)
 
     for (int j = 0; j < keyCount; ++j)
     {
-        free_routingentry(search_table(routing_table_entry, keys[j]));
+        free_routing_entry(search_table(routing_table_entry, keys[j]));
     }
 
     free_table_keys(keys, keyCount);
@@ -180,7 +180,7 @@ ArrayList *param_options(const char *total_path)
     return list;
 }
 
-bool search_in_routing_table(HashTable *table, Request *request, Response *response, const char* path)
+bool search_in_routing_table(const HashTable *table, Request *request, Response *response, const char* path)
 {
     if (table == NULL || path == NULL)
     {
@@ -206,8 +206,8 @@ bool search_in_routing_table(HashTable *table, Request *request, Response *respo
 
     bool found = false;
     for (int i = 0; i < list->size; ++i) {
-        char *key = list->elements[i];
-        size_t partLength = strlen(key);
+        const char *key = list->elements[i];
+        const size_t partLength = strlen(key);
         char *sub = substring(path, partLength, strlen(path));
 
         if (sub == NULL)
@@ -257,7 +257,7 @@ void handle_client(const int client_socket, const Webserver *webserver)
     sscanf(buffer, "%s %s %s", method, path, version);
 
     char *absolute_path = malloc(sizeof(char) * (strlen(path) + 1));
-    string_copy_until_char(absolute_path, path, '?', sizeof(absolute_path));
+    string_copy_until_char(absolute_path, path, '?', strlen(path) + 1);
 
     if (absolute_path == null)
     {
@@ -315,7 +315,7 @@ bool run_webserver(Webserver *webserver)
         return false;
     }
 
-    struct sockaddr_in server_addr = {
+    struct sockaddr_in socket_address = {
             .sin_family = AF_INET,
             .sin_addr.s_addr = INADDR_ANY,
             .sin_port = htons(webserver->port)
@@ -328,7 +328,7 @@ bool run_webserver(Webserver *webserver)
         return false;
     }
 
-    if (bind(webserver->socket, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
+    if (bind(webserver->socket, (struct sockaddr *)&socket_address, sizeof(socket_address)) < 0)
     {
         if (errno == EADDRINUSE) {
             fprintf(stderr, "Error: Port %d already in use.", webserver->port);
@@ -401,7 +401,7 @@ void free_webserver(Webserver *webserver)
     free(webserver);
 }
 
-RoutingEntry *create_routingentry(void *val, RoutingEntryType type)
+RoutingEntry *create_routing_entry(void *value, RoutingEntryType type)
 {
     RoutingEntry *routing_entry = malloc(sizeof(RoutingEntry));
 
@@ -411,31 +411,31 @@ RoutingEntry *create_routingentry(void *val, RoutingEntryType type)
     }
 
     routing_entry->type = type;
-    routing_entry->data = val;
+    routing_entry->data = value;
     return routing_entry;
 }
 
-void insert_helper(HashTable *routing_table, const char *method, const char *route, void *val, const RoutingEntryType type)
+void insert_helper(const HashTable *routing_table, const char *method, const char *route, void *val, const RoutingEntryType type)
 {
     char *lower_route = to_lowercase(route);
     if (lower_route == null) return;
 
-    insert_table(search_table(routing_table, method), lower_route, create_routingentry(val, type));
+    insert_table(search_table(routing_table, method), lower_route, create_routing_entry(val, type));
     free(lower_route);
 }
 
-void add_route(HashTable *routing_table, enum Method method, const char *route,
+void add_route(const HashTable *routing_table, const enum Method method, const char *route,
                void (*route_implementation)(Request *, Response *))
 {
     insert_helper(routing_table, Method_to_string(method), route, route_implementation, ROUTE);
 }
 
-void add_router(HashTable *routing_table, const char *default_route, HashTable *router)
+void add_router(const HashTable *routing_table, const char *default_route, HashTable *router)
 {
     insert_helper(routing_table, "ROUTERS", default_route, router, ROUTER);
 }
 
-void free_routingentry(RoutingEntry *entry)
+void free_routing_entry(RoutingEntry *entry)
 {
     if (entry == null) return;
 

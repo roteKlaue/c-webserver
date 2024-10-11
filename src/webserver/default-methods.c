@@ -20,6 +20,9 @@ void default_not_found_function(Request *request, Response *response)
     strcpy(result, prefix);
     strcat(result, path);
 
+    insert_table(response->headers, "path", request->absolute_path);
+
+    set_status_code(response, NOT_FOUND);
     send_response(response, result);
     free(result);
 }

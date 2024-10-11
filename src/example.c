@@ -33,10 +33,15 @@ void html_test(Request *request, Response *response)
     send_response(response, "<body> <h1>human</h1><p>sus</p> </body>");
 }
 
-void post_test(Request *request, Response response)
+void post_test(Request *request, Response *response)
 {
     printf("%s\n", request->body);
-    send_response(&response, request->body);
+    send_response(response, request->body);
+}
+
+void header_test(Request *request, Response *response) {
+    insert_table(response->headers, "test", "Test");
+    send_response(response, "Hello, World!");
 }
 
 int main()
@@ -52,6 +57,8 @@ int main()
     add_route(games_router, Get, "/", &html_test);
     add_route(games_router, Get, "/index", &html_test);
     add_route(games_router, Get, "/index.html", &html_test);
+    add_route(games_router, Get, "/post", &post_test);
+    add_route(games_router, Get, "/header", &header_test);
 
     run_webserver(webserver);
     clean_up_webserver(webserver);

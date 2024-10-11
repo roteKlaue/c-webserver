@@ -52,7 +52,23 @@ void send_response(Response *response, char *content)
 
     sprintf(str_value, "%zu", page_response_length);
 
-    const size_t response_length = strlen("HTTP/1.1  \r\nContent-Type: \r\nContent-Length: \r\n\r\n") + content_type_length + num_digits + page_response_length + response_code_length + response_code_num_digits + 1;
+    size_t headers_length = 0;
+    int header_count = 0;
+    char **header_keys = table_keys(response->headers, &header_count);
+
+    for (int i = 0; i < header_count; i++)
+    {
+        const char *key = header_keys[i];
+        const char *value = search_table(response->headers, key);
+        if (key != NULL && value != NULL)
+        {
+            headers_length += strlen(key) + strlen(value) + strlen(": \r\n");
+        }
+    }
+
+    const size_t response_length = strlen("HTTP/1.1  \r\nContent-Type: \r\nContent-Length: \r\n\r\n") +
+        content_type_length + num_digits + page_response_length +
+        response_code_length + response_code_num_digits + headers_length  + 1;
     char *response_finished = malloc(response_length);
 
     if (response_finished == NULL)
@@ -64,18 +80,34 @@ void send_response(Response *response, char *content)
         {
             free(content);
         }
+        free_table_keys(header_keys, header_count);
         return;
     }
 
     snprintf(response_finished, response_length,
-             "HTTP/1.1 %d %s\r\nContent-Type: %s\r\nContent-Length: %s\r\n\r\n%s",
-             response->status_code, response_code, content_type, str_value, content);
+             "HTTP/1.1 %d %s\r\nContent-Type: %s\r\nContent-Length: %s\r\n",
+             response->status_code, response_code, content_type, str_value);
+
+    size_t offset = strlen(response_finished);
+    for (int i = 0; i < header_count; i++)
+    {
+        const char *key = header_keys[i];
+        const char *value = search_table(response->headers, key);
+        if (key != NULL && value != NULL)
+        {
+            snprintf(response_finished + offset, response_length - offset, "%s: %s\r\n", key, value);
+            offset += strlen(key) + strlen(value) + strlen(": \r\n");
+        }
+    }
+
+    snprintf(response_finished + offset, response_length - offset, "\r\n%s", content);
 
     send(response->socket, response_finished, (int) strlen(response_finished), 0);
     close(response->socket);
 
     free(str_value);
     free(response_finished);
+    free_table_keys(header_keys, header_count);
     if(response->auto_clean_up)
     {
         free(content);
