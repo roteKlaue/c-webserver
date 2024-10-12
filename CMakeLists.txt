@@ -35,7 +35,9 @@ add_executable(${PROJECT_NAME} src/example.c
         src/multithreading/Task.c
         src/multithreading/Task.h
         src/multithreading/ThreadPool.c
-        src/multithreading/ThreadPool.h)
+        src/multithreading/ThreadPool.h
+        src/util/Stack.c
+        src/util/Stack.h)
 
 if (WIN32)
     target_link_libraries(C-Webserver PRIVATE ws2_32)

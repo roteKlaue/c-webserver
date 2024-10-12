@@ -24,15 +24,18 @@ typedef struct {
     void *data;
 } RoutingEntry;
 
+typedef void (*route_implementation)(const Request *, Response *);
+
 typedef struct {
     HashTable *routes;
-    void (*not_found)(Request *, Response *);
-    void (*internal_server_error)(Request *, Response *, const char *);
+    route_implementation not_found;
+    void (*internal_server_error)(const Request *, Response *, const char *);
     bool continue_running;
     int port;
     int socket;
     int buffer_size;
     int thread_count;
+    int max_tasks_per_thread;
 } Webserver;
 
 void initialise_webserver_framework();
@@ -43,10 +46,9 @@ void free_webserver(Webserver *webserver);
 bool run_webserver(Webserver *webserver);
 void clean_up_webserver(Webserver *webserver);
 HashTable *create_routing_table();
-void free_routing_table(HashTable *routing_table);
 void add_route(const HashTable *routing_table, enum Method method, const char *route,
-        void (*route_implementation)(Request *, Response *));
+               route_implementation implementation);
 void add_router(const HashTable *routing_table, const char *default_route, HashTable *router);
-void free_routing_entry(RoutingEntry *entry);
+void free_routing_structure(HashTable *routing_table_entry);
 
 #endif //C_WEBSERVER_WEBSERVER_H

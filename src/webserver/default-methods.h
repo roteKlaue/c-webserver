@@ -17,7 +17,7 @@
  * @param request The HTTP request that triggered the error.
  * @param response The HTTP response that will be modified.
  */
-void default_not_found_function(Request *request, Response *response);
+void default_not_found_function(const Request *request, Response *response);
 
 
 /**
@@ -29,6 +29,6 @@ void default_not_found_function(Request *request, Response *response);
  * @param response The HTTP response that will be modified.
  * @param error string representation of the error
  */
-void default_internal_server_error(Request *request, Response *response, const char *error);
+void default_internal_server_error(const Request *request, Response *response, const char *error);
 
 #endif //C_WEBSERVER_DEFAULT_METHODS_H

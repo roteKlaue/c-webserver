@@ -6,14 +6,15 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "../multithreading/ThreadPool.h"
 #include "./middleware/static-hosting.h"
 #include "../util/string-util.h"
+#include "../util/Stack.h"
 #include "webserver_headers.h"
 #include "default-methods.h"
 #include "param-util.h"
 #include "webserver.h"
 #include "Method.h"
-#include "../multithreading/ThreadPool.h"
 
 #define null NULL
 
@@ -89,6 +90,7 @@ Webserver *create_webserver()
     webserver->thread_count = DEFAULT_THREAD_COUNT;
     webserver->buffer_size = DEFAULT_BUFFER_SIZE;
     webserver->routes = create_routing_table();
+    webserver->max_tasks_per_thread = 0;
     webserver->continue_running = true;
     webserver->port = DEFAULT_PORT;
     webserver->socket = -1;
@@ -115,36 +117,6 @@ HashTable *create_routing_table()
     return routing_table;
 }
 
-void free_entry(HashTable *routing_table_entry)
-{
-    if (routing_table_entry == null) return;
-
-    int keyCount;
-    char **keys = table_keys(routing_table_entry, &keyCount);
-
-    for (int j = 0; j < keyCount; ++j)
-    {
-        free_routing_entry(search_table(routing_table_entry, keys[j]));
-    }
-
-    free_table_keys(keys, keyCount);
-
-    free_table(routing_table_entry);
-}
-
-void free_routing_table(HashTable *routing_table)
-{
-    if (routing_table == null) return;
-
-    for (int i = 0; i < NUM_METHODS; ++i)
-    {
-        free_entry(search_table(routing_table, Method_to_string(methods[i])));
-    }
-
-    free_entry(search_table(routing_table, "ROUTERS"));
-    free_table(routing_table);
-}
-
 ArrayList *param_options(const char *total_path)
 {
     ArrayList *list = create_default_arraylist();
@@ -158,7 +130,7 @@ ArrayList *param_options(const char *total_path)
             total_length += strlen(urlParts[j]) + 1;
         }
 
-        char *part = malloc(total_length);
+        char *part = malloc(total_length + 1);
         if (part == null) {
             free_string_parts(urlParts, partsCount);
             return NULL;
@@ -166,9 +138,9 @@ ArrayList *param_options(const char *total_path)
 
         part[0] = '\0';
         for (int j = 0; j <= i; ++j) {
-            strcat(part, urlParts[j]);
+            strncat(part, urlParts[j], total_length - strlen(part) - 1);
             if (j != i) {
-                strcat(part, "/");
+                strncat(part, "/", total_length - strlen(part) - 1);
             }
         }
 
@@ -190,10 +162,10 @@ bool search_in_routing_table(const HashTable *table, Request *request, Response 
 
     if (method_table != NULL)
     {
-        RoutingEntry *entry = search_table(method_table, path);
+        const RoutingEntry *entry = search_table(method_table, path);
         if (entry != NULL)
         {
-            ((void (*)(Request *, Response *)) entry->data)(request, response);
+            ((route_implementation) entry->data)(request, response);
             return true;
         }
     }
@@ -397,7 +369,7 @@ void clean_up_webserver(Webserver *webserver)
 
 void free_webserver(Webserver *webserver)
 {
-    free_routing_table(webserver->routes);
+    free_routing_structure(webserver->routes);
     free(webserver);
 }
 
@@ -415,33 +387,46 @@ RoutingEntry *create_routing_entry(void *value, RoutingEntryType type)
     return routing_entry;
 }
 
-void insert_helper(const HashTable *routing_table, const char *method, const char *route, void *val, const RoutingEntryType type)
-{
-    char *lower_route = to_lowercase(route);
-    if (lower_route == null) return;
-
-    insert_table(search_table(routing_table, method), lower_route, create_routing_entry(val, type));
-    free(lower_route);
-}
-
 void add_route(const HashTable *routing_table, const enum Method method, const char *route,
-               void (*route_implementation)(Request *, Response *))
+               const route_implementation implementation)
 {
-    insert_helper(routing_table, Method_to_string(method), route, route_implementation, ROUTE);
+    insert_table(search_table(routing_table, Method_to_string(method)), route,
+                 create_routing_entry(implementation, ROUTE));
 }
 
 void add_router(const HashTable *routing_table, const char *default_route, HashTable *router)
 {
-    insert_helper(routing_table, "ROUTERS", default_route, router, ROUTER);
+    insert_table(search_table(routing_table, "ROUTERS"), default_route,
+        create_routing_entry(router, ROUTER));
 }
 
-void free_routing_entry(RoutingEntry *entry)
+void free_routing_structure(HashTable *routing_table_entry)
 {
-    if (entry == null) return;
+    if (routing_table_entry == null) return;
 
-    if (entry->type == ROUTER) {
-        free_routing_table(entry->data);
+    Stack *stack = create_default_stack();
+    push_stack(stack, routing_table_entry);
+
+    while (!is_stack_empty(stack))
+    {
+        HashTable *current_table = pop_stack(stack);
+
+        int keyCount;
+        char **keys = table_keys(current_table, &keyCount);
+
+        for (int j = 0; j < keyCount; ++j)
+        {
+            RoutingEntry *entry = search_table(current_table, keys[j]);
+            if (entry != null)
+            {
+                if (entry->type == ROUTER) push_stack(stack, entry->data);
+                free(entry);
+            }
+        }
+
+        free_table_keys(keys, keyCount);
+        free_table(current_table);
     }
 
-    free(entry);
+    free_stack(stack);
 }

@@ -106,7 +106,7 @@ bool isFolder(const char *path)
     return true;
 }
 
-void in_between_function(Request *request, Response *response)
+void in_between_function(const Request *request, Response *response)
 {
     const char *requested_path = get_last_path_segment(request->absolute_path);
     const char *file_path = search_table(route_to_file_table, requested_path);
