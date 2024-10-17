@@ -16,7 +16,7 @@ const char *JPG_TYPE = "image/jpeg";
 const char *PNG_TYPE = "image/png";
 const char *UNKNOWN_TYPE = "application/octet-stream";
 
-const char* ContentType_to_string(enum ContentType content_type)
+const char* ContentType_to_string(const enum  ContentType content_type)
 {
     switch (content_type) {
         case TEXT:
@@ -49,17 +49,21 @@ enum ContentType string_to_ContentType(const char *content_type_str)
 
     if (strcmp(content_type_str, TEXT_TYPE) == 0) {
         return TEXT;
-    } else if (strcmp(content_type_str, JSON_TYPE) == 0) {
-        return JSON;
-    } else if (strcmp(content_type_str, JS_TYPE) == 0) {
-        return JS;
-    } else if (strcmp(content_type_str, HTML_TYPE) == 0) {
-        return HTML;
-    } else if (strcmp(content_type_str, XML_TYPE) == 0) {
-        return XML;
-    } else if (strcmp(content_type_str, CSS_TYPE) == 0) {
-        return CSS;
-    } else {
-        return UNKNOWN;
     }
+    if (strcmp(content_type_str, JSON_TYPE) == 0) {
+        return JSON;
+    }
+    if (strcmp(content_type_str, JS_TYPE) == 0) {
+        return JS;
+    }
+    if (strcmp(content_type_str, HTML_TYPE) == 0) {
+        return HTML;
+    }
+    if (strcmp(content_type_str, XML_TYPE) == 0) {
+        return XML;
+    }
+    if (strcmp(content_type_str, CSS_TYPE) == 0) {
+        return CSS;
+    }
+    return UNKNOWN;
 }

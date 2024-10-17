@@ -48,6 +48,10 @@ void error_test(const Request *request, Response *response) {
     response->error = "request->body;";
 }
 
+void redirect_test(const Request *request, Response *response) {
+    redirect_response(response, "/", true);
+}
+
 int main()
 {
     initialise_webserver_framework();
@@ -63,6 +67,7 @@ int main()
     add_route(webserver->routes, Get, "/header", &header_test);
     add_route(webserver->routes, Get, "/error", &error_test);
     add_route(webserver->routes, Get, "/ERROR", &error_test);
+    add_route(webserver->routes, Get, "/redirect", &redirect_test);
 
     add_router(webserver->routes, "/games", games_router);
     add_route(games_router, Get, "/", &html_test);

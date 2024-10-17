@@ -25,7 +25,7 @@ HashTable* create_table(const int initial_capacity)
     HashTable *table = malloc(sizeof(HashTable));
     if (table == NULL) return NULL;
 
-    table->entries = malloc(sizeof(TableEntry*) * initial_capacity);
+    table->entries = malloc(sizeof(TableEntry *) * initial_capacity);
     if (table->entries == NULL) {
         free(table);
         return NULL;
