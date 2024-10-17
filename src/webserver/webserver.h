@@ -14,8 +14,8 @@
 #define DEFAULT_PORT 4096
 
 typedef enum {
-    ROUTER,
-    ROUTE,
+    ROUTER = 0,
+    ROUTE = 1,
     // MIDDLE_WARE
 } RoutingEntryType;
 

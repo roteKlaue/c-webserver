@@ -373,7 +373,7 @@ void free_webserver(Webserver *webserver)
     free(webserver);
 }
 
-RoutingEntry *create_routing_entry(void *value, RoutingEntryType type)
+RoutingEntry *create_routing_entry(void *value, const RoutingEntryType type)
 {
     RoutingEntry *routing_entry = malloc(sizeof(RoutingEntry));
 
@@ -411,12 +411,34 @@ void free_routing_structure(HashTable *routing_table_entry)
     {
         HashTable *current_table = pop_stack(stack);
 
-        int keyCount;
-        char **keys = table_keys(current_table, &keyCount);
-
-        for (int j = 0; j < keyCount; ++j)
+        for (int j = 0; j < NUM_METHODS; ++j)
         {
-            RoutingEntry *entry = search_table(current_table, keys[j]);
+            HashTable *table = search_table(current_table, Method_to_string(methods[j]));
+
+            int keyCount = 0;
+            char **keys = table_keys(table, &keyCount);
+
+            for (int i = 0; i < keyCount; ++i) {
+                RoutingEntry *entry = search_table(table, keys[i]);
+
+                if (entry != null)
+                {
+                    if (entry->type == ROUTER) push_stack(stack, entry->data);
+                    free(entry);
+                }
+            }
+
+            free_table_keys(keys, keyCount);
+            free_table(table);
+        }
+
+        HashTable *router_table = search_table(current_table, "ROUTERS");
+        int keyCount = 0;
+        char **keys = table_keys(router_table, &keyCount);
+
+        for (int i = 0; i < keyCount; ++i) {
+            RoutingEntry *entry = search_table(router_table, keys[i]);
+
             if (entry != null)
             {
                 if (entry->type == ROUTER) push_stack(stack, entry->data);
@@ -425,6 +447,8 @@ void free_routing_structure(HashTable *routing_table_entry)
         }
 
         free_table_keys(keys, keyCount);
+        free_table(router_table);
+
         free_table(current_table);
     }
 
