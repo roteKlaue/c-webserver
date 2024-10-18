@@ -65,18 +65,6 @@ void clean_up_webserver_framework()
     initialised = false;
 }
 
-
-
-const enum Method methods[] = {
-        Get,
-        Delete,
-        Post,
-        Patch,
-        Put,
-        Options,
-        Head
-};
-
 Webserver *create_webserver()
 {
     Webserver *webserver = malloc(sizeof(Webserver));
@@ -98,25 +86,6 @@ Webserver *create_webserver()
     return webserver;
 }
 
-HashTable *create_routing_table()
-{
-    HashTable *routing_table = create_table(10);
-
-    if (routing_table == null) {
-        perror("Failed to create routing table");
-        return NULL;
-    }
-
-    for (int i = 0; i < NUM_METHODS; ++i)
-    {
-        insert_table(routing_table,
-               Method_to_string(methods[i]),
-               create_table(10));
-    }
-    insert_table(routing_table, "ROUTERS", create_table(10));
-    return routing_table;
-}
-
 ArrayList *param_options(const char *total_path)
 {
     ArrayList *list = create_default_arraylist();
@@ -127,7 +96,7 @@ ArrayList *param_options(const char *total_path)
     for (int i = 1; i < partsCount; ++i) {
         int total_length = 0;
         for (int j = 0; j <= i; ++j) {
-            total_length += strlen(urlParts[j]) + 1;
+            total_length += (int) strlen(urlParts[j]) + 1;
         }
 
         char *part = malloc(total_length + 1);
@@ -180,7 +149,7 @@ bool search_in_routing_table(const HashTable *table, Request *request, Response 
     for (int i = 0; i < list->size; ++i) {
         const char *key = list->elements[i];
         const size_t partLength = strlen(key);
-        char *sub = substring(path, partLength, strlen(path));
+        char *sub = substring(path, (int) partLength, strlen(path));
 
         if (sub == NULL)
         {
@@ -204,13 +173,13 @@ bool search_in_routing_table(const HashTable *table, Request *request, Response 
     return found;
 }
 
-void handle_client(const int client_socket, const Webserver *webserver)
+void handle_client(const SOCKET client_socket, const Webserver *webserver)
 {
     char *buffer = malloc(sizeof(char) * webserver->buffer_size);
     if (buffer == null)
     {
         perror("Failed to allocate memory for buffer");
-        close(client_socket);
+        close_socket(client_socket);
         return;
     }
 
@@ -219,7 +188,7 @@ void handle_client(const int client_socket, const Webserver *webserver)
     if (bytes_read < 0)
     {
         perror("recv");
-        close(client_socket);
+        close_socket(client_socket);
         free(buffer);
         return;
     }
@@ -233,7 +202,7 @@ void handle_client(const int client_socket, const Webserver *webserver)
 
     if (absolute_path == null)
     {
-        close(client_socket);
+        close_socket(client_socket);
         free(buffer);
         return;
     }
@@ -268,7 +237,7 @@ void handle_client(const int client_socket, const Webserver *webserver)
 }
 
 struct inter_holder {
-    int client_socket;
+    SOCKET client_socket;
     Webserver *webserver;
 };
 
@@ -308,14 +277,14 @@ bool run_webserver(Webserver *webserver)
             perror("bind");
         }
 
-        close(webserver->socket);
+        close_socket(webserver->socket);
         return false;
     }
 
     if (listen(webserver->socket, 10) < 0)
     {
         perror("listen");
-        close(webserver->socket);
+        close_socket(webserver->socket);
         return false;
     }
 
@@ -328,18 +297,18 @@ bool run_webserver(Webserver *webserver)
 
     while (webserver->continue_running)
     {
-        const int client_socket = accept(webserver->socket, null, null);
-        if (client_socket < 0)
+        const SOCKET client_socket = accept(webserver->socket, null, null);
+        if (client_socket == INVALID_SOCKET)
         {
             perror("accept");
-            close(webserver->socket);
+            close_socket(webserver->socket);
             return false;
         }
 
         struct inter_holder *data = malloc(sizeof(struct inter_holder));
 
         if (data == null) {
-            close(client_socket);
+            close_socket(client_socket);
             continue;
         }
 
@@ -363,7 +332,7 @@ bool run_webserver(Webserver *webserver)
 
 void clean_up_webserver(Webserver *webserver)
 {
-    close(webserver->socket);
+    close_socket(webserver->socket);
     free_webserver(webserver);
 }
 
@@ -371,20 +340,6 @@ void free_webserver(Webserver *webserver)
 {
     free_routing_structure(webserver->routes);
     free(webserver);
-}
-
-RoutingEntry *create_routing_entry(void *value, const RoutingEntryType type)
-{
-    RoutingEntry *routing_entry = malloc(sizeof(RoutingEntry));
-
-    if (routing_entry == null) {
-        perror("Failed to allocate memory for routing entry");
-        return null;
-    }
-
-    routing_entry->type = type;
-    routing_entry->data = value;
-    return routing_entry;
 }
 
 void add_route(const HashTable *routing_table, const enum Method method, const char *route,
@@ -398,59 +353,4 @@ void add_router(const HashTable *routing_table, const char *default_route, HashT
 {
     insert_table(search_table(routing_table, "ROUTERS"), default_route,
         create_routing_entry(router, ROUTER));
-}
-
-void free_routing_structure(HashTable *routing_table_entry)
-{
-    if (routing_table_entry == null) return;
-
-    Stack *stack = create_default_stack();
-    push_stack(stack, routing_table_entry);
-
-    while (!is_stack_empty(stack))
-    {
-        HashTable *current_table = pop_stack(stack);
-
-        for (int j = 0; j < NUM_METHODS; ++j)
-        {
-            HashTable *table = search_table(current_table, Method_to_string(methods[j]));
-
-            int keyCount = 0;
-            char **keys = table_keys(table, &keyCount);
-
-            for (int i = 0; i < keyCount; ++i) {
-                RoutingEntry *entry = search_table(table, keys[i]);
-
-                if (entry != null)
-                {
-                    if (entry->type == ROUTER) push_stack(stack, entry->data);
-                    free(entry);
-                }
-            }
-
-            free_table_keys(keys, keyCount);
-            free_table(table);
-        }
-
-        HashTable *router_table = search_table(current_table, "ROUTERS");
-        int keyCount = 0;
-        char **keys = table_keys(router_table, &keyCount);
-
-        for (int i = 0; i < keyCount; ++i) {
-            RoutingEntry *entry = search_table(router_table, keys[i]);
-
-            if (entry != null)
-            {
-                if (entry->type == ROUTER) push_stack(stack, entry->data);
-                free(entry);
-            }
-        }
-
-        free_table_keys(keys, keyCount);
-        free_table(router_table);
-
-        free_table(current_table);
-    }
-
-    free_stack(stack);
 }

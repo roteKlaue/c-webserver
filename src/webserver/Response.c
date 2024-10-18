@@ -103,7 +103,7 @@ void send_response(Response *response, char *content)
     snprintf(response_finished + offset, response_length - offset, "\r\n%s", content);
 
     send(response->socket, response_finished, (int) strlen(response_finished), 0);
-    close(response->socket);
+    close_socket(response->socket);
 
     free(str_value);
     free(response_finished);
@@ -176,11 +176,11 @@ void send_file_response(Response *response, const void *data, const size_t data_
     snprintf(response_finished + offset, response_length - offset, "\r\n");
 
     send(response->socket, response_finished, (int) strlen(response_finished), 0);
-    send(response->socket, data, data_length, 0);
+    send(response->socket, data, (int) data_length, 0);
 
     free(response_finished);
     free_table_keys(header_keys, header_count);
-    close(response->socket);
+    close_socket(response->socket);
 }
 
 void redirect_response(Response *response, const char *redirect_url, const bool permanent)
@@ -219,7 +219,7 @@ void redirect_response(Response *response, const char *redirect_url, const bool 
     send(response->socket, response_finished, (int)strlen(response_finished), 0);
 
     free(response_finished);
-    close(response->socket);
+    close_socket(response->socket);
 }
 
 
@@ -239,13 +239,17 @@ void set_status_code(Response *response, const enum StatusCode statusCode)
     response->status_code = statusCode;
 }
 
-Response *create_response(const int socket)
+Response *create_response(const SOCKET socket)
 {
     Response *response = malloc(sizeof(Response));
-
     if (response == NULL) return NULL;
 
     response->headers = create_table(10);
+    if (response->headers == NULL) {
+        free(response);
+        return NULL;
+    }
+
     response->auto_clean_up = false;
     response->contentType = TEXT;
     response->status_code = OK;

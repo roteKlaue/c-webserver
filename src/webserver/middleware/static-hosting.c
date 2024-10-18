@@ -171,7 +171,7 @@ void in_between_function(const Request *request, Response *response)
 const char* get_last_path_segment(const char *requested_path)
 {
     const char *last_slash = strrchr(requested_path, '/');
-    return (last_slash != NULL) ? last_slash + 1 : requested_path;
+    return last_slash != NULL ? last_slash + 1 : requested_path;
 }
 
 void cleanup_static_routing_table()

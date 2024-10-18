@@ -10,12 +10,14 @@
 
     #pragma comment(lib, "Ws2_32.lib")
     typedef int socklen_t;
-    #define close closesocket
+    #define close_socket closesocket
 #else
     #include <unistd.h>
     #include <arpa/inet.h>
     #include <netinet/in.h>
     #include <sys/socket.h>
+    #define SOCKET int
+    #define close_socket close
 #endif
 
 #endif //C_WEBSERVER_WEBSERVER_HEADERS_H
