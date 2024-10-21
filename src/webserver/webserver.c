@@ -9,7 +9,6 @@
 #include "../multithreading/ThreadPool.h"
 #include "./middleware/static-hosting.h"
 #include "../util/string-util.h"
-#include "../util/Stack.h"
 #include "webserver_headers.h"
 #include "default-methods.h"
 #include "param-util.h"
@@ -295,11 +294,19 @@ bool run_webserver(Webserver *webserver)
         pool = create_threadpool(webserver->thread_count);
     }
 
+    struct timeval timeout;
+    timeout.tv_sec = 1;
+    timeout.tv_usec = 0;
+
+    setsockopt(webserver->socket, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
+
     while (webserver->continue_running)
     {
         const SOCKET client_socket = accept(webserver->socket, null, null);
         if (client_socket == INVALID_SOCKET)
         {
+            if (errno == EWOULDBLOCK || errno == EAGAIN) continue;
+
             perror("accept");
             close_socket(webserver->socket);
             return false;

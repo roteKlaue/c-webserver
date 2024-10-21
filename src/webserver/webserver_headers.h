@@ -18,6 +18,7 @@
     #include <sys/socket.h>
     #define SOCKET int
     #define close_socket close
+    #define INVALID_SOCKET -1
 #endif
 
 #endif //C_WEBSERVER_WEBSERVER_HEADERS_H

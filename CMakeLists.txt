@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 project(C-Webserver C)
 
-add_executable(${PROJECT_NAME} src/example.c
+add_executable(${PROJECT_NAME}
         src/webserver/webserver.c
         src/webserver/webserver.h
         src/webserver/Request.c
@@ -17,6 +17,8 @@ add_executable(${PROJECT_NAME} src/example.c
         src/webserver/StatusCode.c
         src/webserver/StatusCode.h
         src/webserver/webserver_headers.h
+        src/webserver/Router.c
+        src/webserver/Router.h
         src/webserver/default-methods.c
         src/webserver/default-methods.h
         src/webserver/middleware/static-hosting.c
@@ -31,15 +33,13 @@ add_executable(${PROJECT_NAME} src/example.c
         src/util/ArrayList.h
         src/util/LinkedList.c
         src/util/LinkedList.h
+        src/util/Stack.c
+        src/util/Stack.h
         src/multithreading/threads.h
         src/multithreading/Task.c
         src/multithreading/Task.h
         src/multithreading/ThreadPool.c
-        src/multithreading/ThreadPool.h
-        src/util/Stack.c
-        src/util/Stack.h
-        src/webserver/Router.c
-        src/webserver/Router.h)
+        src/multithreading/ThreadPool.h)
 
 if (WIN32)
     target_link_libraries(C-Webserver PRIVATE ws2_32)
