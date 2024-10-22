@@ -3,6 +3,7 @@
 //
 
 #include <stdlib.h>
+#include <stdio.h>
 #include "../util/HashTable.h"
 #include "../util/Stack.h"
 #include "Method.h"
