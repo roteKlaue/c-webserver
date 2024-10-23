@@ -13,6 +13,7 @@
 #include <stdlib.h>
 
 #ifdef _WIN32
+    #define WIN32_LEAN_AND_MEAN
     #include <windows.h>
     #include <process.h>
 
@@ -82,7 +83,8 @@
     #define pthread_mutex_destroy(mutex) DeleteCriticalSection(mutex)
 
     // Exit thread wrapper for Windows
-    #define pthread_exit(value_ptr) _endthreadex(0)
+    #define pthread_exit(value_ptr) _endthreadex(0);\
+        return (unsigned int) 0;
 
     // Defines macros for sleeping functions in milliseconds and microseconds.
     #define thread_sleep(seconds) Sleep((seconds) * 1000)

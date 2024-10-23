@@ -12,7 +12,7 @@ LinkedList *create_linkedlist()
 
     list->size = 0;
     list->start_element = NULL;
-    list->destroy_element = free;
+    list->destroy_element = NULL;
     list->element_equals = NULL;
 
     return list;
@@ -27,11 +27,11 @@ ListEntry *create_listentry(void *element)
     return entry;
 }
 
-void *get_linkedlist(LinkedList *list, int index)
+void *get_linkedlist(LinkedList *list, const int index)
 {
     if (list == NULL || index < 0 || index >= list->size || is_empty_linkedlist(list)) return NULL;
 
-    ListEntry *entry = list->start_element;
+    const ListEntry *entry = list->start_element;
     for (int i = 0; i < index; ++i) {
         entry = entry->next;
     }
@@ -39,7 +39,7 @@ void *get_linkedlist(LinkedList *list, int index)
     return entry->value;
 }
 
-bool remove_linkedlist(LinkedList *list, int index)
+bool remove_linkedlist(LinkedList *list, const int index)
 {
     if (list == NULL || index < 0 || index >= list->size || is_empty_linkedlist(list)) return false;
 
@@ -87,7 +87,7 @@ bool add_linkedlist(LinkedList *list, void *element)
     return true;
 }
 
-void free_listentry(LinkedList *list, ListEntry *entry)
+void free_listentry(const LinkedList *list, ListEntry *entry)
 {
     if (list == NULL || entry == NULL) return;
     if (list->destroy_element)
@@ -112,17 +112,17 @@ void free_linkedlist(LinkedList *list)
     free(list);
 }
 
-bool is_empty_linkedlist(LinkedList *list)
+bool is_empty_linkedlist(const LinkedList *list)
 {
     if (list == NULL) return true;
     return list->size == 0;
 }
 
-int index_of_linkedlist(LinkedList *list, void *element)
+int index_of_linkedlist(const LinkedList *list, void *element)
 {
     if (list == NULL || list->start_element == NULL) return -1;
 
-    ListEntry *entry = list->start_element;
+    const ListEntry *entry = list->start_element;
     for (int i = 0; entry!=NULL; ++i) {
         if (list->element_equals)
         {
@@ -138,11 +138,11 @@ int index_of_linkedlist(LinkedList *list, void *element)
     return -1;
 }
 
-int last_index_of_linkedlist(LinkedList *list, void *element)
+int last_index_of_linkedlist(const LinkedList *list, void *element)
 {
     if (list == NULL || list->start_element == NULL) return -1;
 
-    ListEntry *entry = list->start_element;
+    const ListEntry *entry = list->start_element;
     int index = -1;
     for (int i = 0; entry != NULL; ++i) {
         if (list->element_equals) {
@@ -160,7 +160,7 @@ int last_index_of_linkedlist(LinkedList *list, void *element)
     return index;
 }
 
-bool insert_linkedlist(LinkedList *list, void *element, int index)
+bool insert_linkedlist(LinkedList *list, void *element, const int index)
 {
     if (list == NULL || index < 0 || index > list->size) return false;
 

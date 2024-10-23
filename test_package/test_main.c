@@ -3,7 +3,6 @@
 //
 #include <stdio.h>
 #include "webserver/webserver.h"
-#include "webserver/middleware/static-hosting.h"
 
 Webserver *webserver;
 
@@ -15,7 +14,7 @@ void index_route(const Request *request, Response *response)
 void shutdown_server(const Request *request, Response *response)
 {
     webserver->continue_running = false;
-    printf("i did the shutdown");
+    printf("Shutting down\n");
     send_response(response, "Shutting down");
 }
 

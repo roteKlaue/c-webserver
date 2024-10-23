@@ -23,15 +23,14 @@ typedef struct {
 } LinkedList;
 
 LinkedList *create_linkedlist();
-ListEntry *create_listentry(void *element);
 void *get_linkedlist(LinkedList *list, int index);
 bool remove_linkedlist(LinkedList *list, int index);
 bool add_linkedlist(LinkedList *list, void *element);
 bool insert_linkedlist(LinkedList *list, void *element, int index);
-bool is_empty_linkedlist(LinkedList *list);
-int index_of_linkedlist(LinkedList *list, void *element);
-int last_index_of_linkedlist(LinkedList *list, void *element);
+bool is_empty_linkedlist(const LinkedList *list);
+int index_of_linkedlist(const LinkedList *list, void *element);
+int last_index_of_linkedlist(const LinkedList *list, void *element);
 void free_linkedlist(LinkedList *list);
-void free_listentry(LinkedList *list, ListEntry *entry);
+void free_listentry(const LinkedList *list, ListEntry *entry);
 
 #endif //C_WEBSERVER_LINKEDLIST_H

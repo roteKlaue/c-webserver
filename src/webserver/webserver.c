@@ -6,13 +6,15 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <util/ArrayList.h>
 #include "../multithreading/ThreadPool.h"
-#include "./middleware/static-hosting.h"
 #include "../util/string-util.h"
 #include "webserver_headers.h"
 #include "default-methods.h"
 #include "param-util.h"
 #include "webserver.h"
+
+
 #include "Method.h"
 
 #define null NULL

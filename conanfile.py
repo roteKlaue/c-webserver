@@ -1,25 +1,30 @@
 from conan import ConanFile
 from conan.tools.files import copy
-from conan.tools.cmake import CMakeToolchain, CMake, cmake_layout
+from conan.tools.cmake import CMakeToolchain, CMake, cmake_layout, CMakeDeps
 
 class CrestConan(ConanFile):
     name = "crest"
-    version = "1.0"
+    version = "0.0.1"
     license = "MIT"
-    author = "roteKlaue"
+    author = "roteKlaue janoolhd@gmail.com"
     url = "https://github.com/roteklaue/c-webserver"
     description = "A lightweight webserver framework in C."
     topics = ("webserver", "framework", "C", "networking")
     settings = "os", "compiler", "build_type", "arch"
-    generators = "CMakeDeps", "CMakeToolchain"
     exports_sources = "src/*", "CMakeLists.txt"
+
+    def config_options(self):
+        pass
 
     def layout(self):
         cmake_layout(self)
 
     def generate(self):
+        deps = CMakeDeps(self)
+        deps.generate()
+        tc = CMakeToolchain(self)
+        tc.generate()
 
-        pass
 
     def build(self):
         cmake = CMake(self)
@@ -27,12 +32,9 @@ class CrestConan(ConanFile):
         cmake.build()
 
     def package(self):
-        copy(self, "*.h", src="src", dst=self.package_folder + "/include")
-        copy(self, "*.a", src=self.build_folder, dst=self.package_folder + "/lib", keep_path=False)
-        copy(self, "*.so", src=self.build_folder, dst=self.package_folder + "/lib", keep_path=False)
-        copy(self, "*.dll", src=self.build_folder, dst=self.package_folder + "/lib", keep_path=False)
-        copy(self, "*.dylib", src=self.build_folder, dst=self.package_folder + "/lib", keep_path=False)
+        cmake = CMake(self)
+        cmake.install()
 
     def package_info(self):
         self.cpp_info.libs = ["crest"]
-
+        self.cpp_info.includedirs = ["include"]

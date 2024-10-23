@@ -13,7 +13,6 @@ add_library(crest STATIC
     src/webserver/StatusCode.c
     src/webserver/Router.c
     src/webserver/default-methods.c
-    src/webserver/middleware/static-hosting.c
     src/webserver/middleware/body-parser.c
     src/util/HashTable.c
     src/util/string-util.c

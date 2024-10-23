@@ -15,7 +15,7 @@ unsigned int hash(const char *key, const int capacity)
     unsigned long hash = 5381;
     int c;
     while ((c = (unsigned char) *key++)) {
-        hash = ((hash << 5) + hash) + c;
+        hash = (hash << 5) + hash + c;
     }
     return hash % capacity;
 }
