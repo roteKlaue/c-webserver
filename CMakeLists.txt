@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(C-Webserver C)
+project(crest C)
 
 set(CMAKE_C_STANDARD 17)
 
@@ -24,7 +24,10 @@ add_library(crest STATIC
 )
 
 target_include_directories(crest PUBLIC src)
+target_include_directories(crest PUBLIC include)
 
 if (WIN32)
     target_link_libraries(crest PRIVATE ws2_32)
 endif()
+
+install(TARGETS crest)

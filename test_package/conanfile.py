@@ -4,7 +4,7 @@ from conan.tools.cmake import CMake
 class CrestTestPackageConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     generators = "CMakeDeps", "CMakeToolchain"
-    requires = "crest/1.0"
+    requires = "crest/0.0.1"
 
     def build(self):
         cmake = CMake(self)
