@@ -3,31 +3,34 @@ project(crest C)
 
 set(CMAKE_C_STANDARD 17)
 
-add_library(crest STATIC
-    src/webserver/webserver.c
-    src/webserver/Request.c
-    src/webserver/Response.c
-    src/webserver/Method.c
-    src/webserver/ContentType.c
-    src/webserver/param-util.c
-    src/webserver/StatusCode.c
-    src/webserver/Router.c
-    src/webserver/default-methods.c
-    src/webserver/middleware/body-parser.c
-    src/util/HashTable.c
-    src/util/string-util.c
-    src/util/ArrayList.c
-    src/util/LinkedList.c
-    src/util/Stack.c
-    src/multithreading/Task.c
-    src/multithreading/ThreadPool.c
+add_library(crest
+        src/Task.c
+        src/ArrayList.c
+        src/ContentType.c
+        src/default-methods.c
+        src/HashTable.c
+        src/LinkedList.c
+        src/Method.c
+        src/param-util.c
+        src/Request.c
+        src/Response.c
+        src/Router.c
+        src/Stack.c
+        src/StatusCode.c
+        src/string-util.c
+        src/ThreadPool.c
+        src/webserver.c
 )
 
-target_include_directories(crest PUBLIC src)
-target_include_directories(crest PUBLIC include)
+target_include_directories(crest PUBLIC include )
 
-if (WIN32)
-    target_link_libraries(crest PRIVATE ws2_32)
-endif()
+set_target_properties(crest PROPERTIES
+        PUBLIC_HEADER
+        "include/ArrayList.h;include/ContentType.h;include/default-methods.h;include/HashTable.h;include/LinkedList.h;include/Method.h;include/param-util.h;include/Request.h;include/Response.h;include/Router.h;include/Stack.h;include/StatusCode.h;include/string-util.h;include/Task.h;include/ThreadPool.h;include/threads.h;include/webserver.h;include/webserver_headers.h"
+)
 
-install(TARGETS crest)
+install(TARGETS crest
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+        PUBLIC_HEADER DESTINATION include
+)

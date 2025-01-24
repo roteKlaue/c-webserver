@@ -156,3 +156,5 @@ environment_run.sh.env
 # End of https://www.toptal.com/developers/gitignore/api/cmake,conan,clion
 
 test_package/**/**
+
+.idea/**/**

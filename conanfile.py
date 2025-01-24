@@ -1,6 +1,6 @@
 from conan import ConanFile
-from conan.tools.files import copy
 from conan.tools.cmake import CMakeToolchain, CMake, cmake_layout, CMakeDeps
+
 
 class CrestConan(ConanFile):
     name = "crest"
@@ -11,16 +11,20 @@ class CrestConan(ConanFile):
     author = "roteKlaue janoolhd@gmail.com"
     url = "https://github.com/roteklaue/c-webserver"
     description = "A lightweight webserver framework in C."
-    topics = ("webserver", "framework", "C", "networking")
+    topics = ("http", "REST", "webserver", "C")
 
     settings = "os", "compiler", "build_type", "arch"
     options = {"shared": [True, False], "fPIC": [True, False]}
     default_options = {"shared": False, "fPIC": True}
 
-    exports_sources = "src/*", "CMakeLists.txt", "include/*"
+    exports_sources = "CMakeLists.txt", "src/*", "include/*"
 
     def config_options(self):
         if self.settings.os == "Windows":
+            self.options.rm_safe("fPIC")
+
+    def configure(self):
+        if self.options.shared:
             self.options.rm_safe("fPIC")
 
     def layout(self):
@@ -31,7 +35,6 @@ class CrestConan(ConanFile):
         deps.generate()
         tc = CMakeToolchain(self)
         tc.generate()
-
 
     def build(self):
         cmake = CMake(self)

@@ -3,9 +3,8 @@
 //
 
 #include <stdlib.h>
-#include <stdio.h>
-#include "../util/HashTable.h"
-#include "../util/Stack.h"
+#include "HashTable.h"
+#include "Stack.h"
 #include "Method.h"
 #include "Router.h"
 
