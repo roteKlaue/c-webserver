@@ -82,6 +82,13 @@ Webserver *create_webserver()
     webserver->port = DEFAULT_PORT;
     webserver->socket = -1;
 
+    webserver->stop_notifier = create_stop_notifier();
+    if (webserver->stop_notifier == NULL) {
+        free(webserver);
+        fprintf(stderr, "Failed to create StopNotifier.\n");
+        return NULL;
+    }
+
     return webserver;
 }
 
@@ -255,6 +262,8 @@ bool run_webserver(Webserver *webserver)
         return false;
     }
 
+    if (webserver == NULL) return false;
+
     struct sockaddr_in socket_address = {
             .sin_family = AF_INET,
             .sin_addr.s_addr = INADDR_ANY,
@@ -294,39 +303,71 @@ bool run_webserver(Webserver *webserver)
         pool = create_threadpool(webserver->thread_count);
     }
 
-    struct timeval timeout;
-    timeout.tv_sec = 1;
-    timeout.tv_usec = 0;
-
-    setsockopt(webserver->socket, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
+    SOCKET stop_fd = webserver->stop_notifier ? webserver->stop_notifier->fds[0] : INVALID_SOCKET;
 
     while (webserver->continue_running)
     {
-        const SOCKET client_socket = accept(webserver->socket, null, null);
-        if (client_socket == INVALID_SOCKET)
-        {
-            if (errno == EWOULDBLOCK || errno == EAGAIN) continue;
+        fd_set read_fds;
+        FD_ZERO(&read_fds);
+        FD_SET(webserver->socket, &read_fds);
 
-            perror("accept");
-            close_socket(webserver->socket);
-            return false;
+        if (stop_fd != INVALID_SOCKET) {
+            FD_SET(stop_fd, &read_fds);
         }
 
-        struct inter_holder *data = malloc(sizeof(struct inter_holder));
+        const SOCKET max_fd = webserver->socket > stop_fd ? webserver->socket : stop_fd;
 
-        if (data == null) {
-            close_socket(client_socket);
-            continue;
+        const int activity = select(max_fd + 1, &read_fds, NULL, NULL, NULL);
+        if (activity < 0) {
+#ifdef _WIN32
+            const int wsaErr = WSAGetLastError();
+            if (wsaErr == WSAEINTR) {
+                continue;
+            }
+            fprintf(stderr, "select() error: %d\n", wsaErr);
+#else
+            if (errno == EINTR) {
+                continue;
+            }
+            perror("select() error");
+#endif
+            break;
         }
 
-        data->client_socket = client_socket;
-        data->webserver = webserver;
+        if (stop_fd != INVALID_SOCKET && FD_ISSET(stop_fd, &read_fds)) {
+#ifdef _WIN32
+            char dummy[1];
+            recv(stop_fd, dummy, 1, 0);
+#else
+            char dummy;
+            read(stop_fd, &dummy, 1);
+#endif
+            break;
+        }
 
-        if (pool != null) {
-            const bool worked = threadpool_add_task(pool, inter_helper, data);
-            if (!worked) inter_helper(data);
-        } else {
-            inter_helper(data);
+        if (FD_ISSET(webserver->socket, &read_fds)) {
+            const SOCKET client_socket = accept(webserver->socket, NULL, NULL);
+            if (client_socket == INVALID_SOCKET) {
+                perror("accept");
+                continue;
+            }
+
+            struct inter_holder *data = malloc(sizeof(struct inter_holder));
+            if (!data) {
+                close_socket(client_socket);
+                continue;
+            }
+            data->client_socket = client_socket;
+            data->webserver     = webserver;
+
+            if (pool) {
+                const bool task_added = threadpool_add_task(pool, inter_helper, data);
+                if (!task_added) {
+                    inter_helper(data);
+                }
+            } else {
+                inter_helper(data);
+            }
         }
     }
 
@@ -337,6 +378,16 @@ bool run_webserver(Webserver *webserver)
     return true;
 }
 
+void stop_webserver(Webserver *webserver)
+{
+    if (webserver == NULL) return;
+    webserver->continue_running = false;
+
+    if (webserver->stop_notifier) {
+        signal_stop_notifier(webserver->stop_notifier);
+    }
+}
+
 void clean_up_webserver(Webserver *webserver)
 {
     close_socket(webserver->socket);
@@ -345,7 +396,15 @@ void clean_up_webserver(Webserver *webserver)
 
 void free_webserver(Webserver *webserver)
 {
+    if (webserver == NULL) return;
+
     free_routing_structure(webserver->routes);
+
+    if (webserver->stop_notifier) {
+        free_stop_notifier(webserver->stop_notifier);
+        webserver->stop_notifier = NULL;
+    }
+
     free(webserver);
 }
 

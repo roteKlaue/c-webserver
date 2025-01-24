@@ -5,6 +5,8 @@
 #ifndef C_WEBSERVER_WEBSERVER_H
 #define C_WEBSERVER_WEBSERVER_H
 #include <stdbool.h>
+
+#include "StopNotifier.h"
 #include "HashTable.h"
 #include "Request.h"
 #include "Response.h"
@@ -26,6 +28,7 @@ typedef struct {
     int buffer_size;
     int thread_count;
     int max_tasks_per_thread;
+    StopNotifier *stop_notifier;
 } Webserver;
 
 void initialise_webserver_framework();
@@ -37,5 +40,6 @@ void clean_up_webserver(Webserver *webserver);
 void add_route(const HashTable *routing_table, enum Method method, const char *route,
                    route_implementation implementation);
 void add_router(const HashTable *routing_table, const char *default_route, HashTable *router);
+void stop_webserver(Webserver *webserver);
 
 #endif //C_WEBSERVER_WEBSERVER_H
