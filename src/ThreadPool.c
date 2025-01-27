@@ -6,7 +6,11 @@
 #include "threads.h"
 #include <stdlib.h>
 
+#ifdef _WIN32
 static unsigned int threadpool_worker(void *arg) {
+#else
+static void *threadpool_worker(void *arg) {
+#endif
     ThreadPool *pool = arg;
 
     while (true) {

@@ -12,7 +12,7 @@ typedef struct StopNotifier {
 } StopNotifier;
 
 StopNotifier *create_stop_notifier(void);
-void signal_stop_notifier(StopNotifier *notifier);
+void signal_stop_notifier(const StopNotifier *notifier);
 void free_stop_notifier(StopNotifier *notifier);
 
 #endif //CREST_STOP_NOTIFY_H

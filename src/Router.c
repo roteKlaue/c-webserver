@@ -2,6 +2,7 @@
 // Created by xxrot on 18.10.2024.
 //
 
+#include <stdio.h>
 #include <stdlib.h>
 #include "HashTable.h"
 #include "Stack.h"

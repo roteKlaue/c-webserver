@@ -1,0 +1,2 @@
+### get users
+GET http://localhost:4096/users/all

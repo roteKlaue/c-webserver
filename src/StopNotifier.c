@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-
+#include <errno.h>
 
 static bool create_socket_pair(StopNotifier *notifier);
 
