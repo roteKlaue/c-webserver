@@ -5,11 +5,11 @@
 #ifndef C_WEBSERVER_REQUEST_H
 #define C_WEBSERVER_REQUEST_H
 
-#include <stdbool.h>
 #include "HashTable.h"
 #include "Method.h"
+#include "export.h"
 
-typedef struct {
+CREST_EXPORT typedef struct {
     int port;
     char *body;
     char **params;

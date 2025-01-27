@@ -7,6 +7,8 @@
 #ifndef C_WEBSERVER_METHOD_H
 #define C_WEBSERVER_METHOD_H
 
+#include "export.h"
+
 /**
  * Enum: Method
  * Purpose: Enumerates the standard HTTP methods supported by the web server.
@@ -30,7 +32,7 @@ enum Method {
  * @return A string representing the HTTP method, e.g., "GET" for `Get`.
  *         If the method is invalid, returns "Unknown Method".
  */
-const char *Method_to_string(enum Method method);
+CREST_EXPORT const char *Method_to_string(enum Method method);
 
 /**
  * Function: string_to_method
@@ -41,6 +43,6 @@ const char *Method_to_string(enum Method method);
  * @return The corresponding Method enum value, or NUM_METHODS if the string
  *         does not match any valid method.
  */
-enum Method string_to_method(const char *method_str);
+CREST_EXPORT enum Method string_to_method(const char *method_str);
 
 #endif //C_WEBSERVER_METHOD_H

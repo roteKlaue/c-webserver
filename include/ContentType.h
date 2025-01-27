@@ -5,6 +5,8 @@
 #ifndef C_WEBSERVER_CONTENTTYPE_H
 #define C_WEBSERVER_CONTENTTYPE_H
 
+#include "export.h"
+
 /**
  * @enum ContentType
  * @brief Represents different content types that can be used in HTTP responses.
@@ -27,7 +29,7 @@ enum ContentType {
  * @param content_type The ContentType enum value to convert.
  * @return A string representing the content type (e.g., "application/json").
  */
-const char* ContentType_to_string(enum ContentType content_type);
-enum ContentType string_to_ContentType(const char *content_type_str);
+CREST_EXPORT const char* ContentType_to_string(enum ContentType content_type);
+CREST_EXPORT enum ContentType string_to_ContentType(const char *content_type_str);
 
 #endif //C_WEBSERVER_CONTENTTYPE_H

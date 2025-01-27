@@ -5,6 +5,7 @@
 #ifndef C_WEBSERVER_DEFAULT_METHODS_H
 #define C_WEBSERVER_DEFAULT_METHODS_H
 
+#include "export.h"
 #include "Response.h"
 #include "Request.h"
 
@@ -17,7 +18,7 @@
  * @param request The HTTP request that triggered the error.
  * @param response The HTTP response that will be modified.
  */
-void default_not_found_function(const Request *request, Response *response);
+CREST_EXPORT void default_not_found_function(const Request *request, Response *response);
 
 
 /**
@@ -29,6 +30,6 @@ void default_not_found_function(const Request *request, Response *response);
  * @param response The HTTP response that will be modified.
  * @param error string representation of the error
  */
-void default_internal_server_error(const Request *request, Response *response, const char *error);
+CREST_EXPORT void default_internal_server_error(const Request *request, Response *response, const char *error);
 
 #endif //C_WEBSERVER_DEFAULT_METHODS_H

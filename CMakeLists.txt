@@ -27,7 +27,7 @@ target_include_directories(crest PUBLIC include )
 
 set_target_properties(crest PROPERTIES
         PUBLIC_HEADER
-        "include/ArrayList.h;include/ContentType.h;include/default-methods.h;include/HashTable.h;include/LinkedList.h;include/Method.h;include/param-util.h;include/Request.h;include/Response.h;include/Router.h;include/Stack.h;include/StatusCode.h;include/string-util.h;include/Task.h;include/ThreadPool.h;include/threads.h;include/webserver.h;include/webserver_headers.h;include/StopNotifier.h"
+        "include/ArrayList.h;include/ContentType.h;include/default-methods.h;include/HashTable.h;include/LinkedList.h;include/Method.h;include/param-util.h;include/Request.h;include/Response.h;include/Router.h;include/Stack.h;include/StatusCode.h;include/string-util.h;include/Task.h;include/ThreadPool.h;include/threads.h;include/webserver.h;include/webserver_headers.h;include/StopNotifier.h;include/export.h"
 )
 
 install(TARGETS crest

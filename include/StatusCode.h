@@ -7,6 +7,8 @@
 #ifndef C_WEBSERVER_STATUSCODE_H
 #define C_WEBSERVER_STATUSCODE_H
 
+#include "export.h"
+
 /**
  * Enum: StatusCode
  * Purpose: Enumerates standard and custom HTTP status codes.
@@ -128,6 +130,6 @@ enum StatusCode {
  * @return A string representing the status code.
  *         If the status code is unknown, returns "Unknown Status Code".
  */
-const char* StatusCode_to_string(enum StatusCode status_code);
+CREST_EXPORT const char* StatusCode_to_string(enum StatusCode status_code);
 
 #endif //C_WEBSERVER_STATUSCODE_H
