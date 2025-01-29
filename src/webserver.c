@@ -39,7 +39,8 @@ static bool initialised = false;
 void initialise_webserver_framework()
 {
     // If already initialized, return early
-    if (initialised) return;
+    if (initialised)
+        return;
 
     // initialise_static_routing_table();
 
@@ -53,7 +54,8 @@ void initialise_webserver_framework()
 void clean_up_webserver_framework()
 {
     // If not initialized, no need to clean up
-    if (!initialised) return;
+    if (!initialised)
+        return;
 
     // cleanup_static_routing_table();
 
@@ -67,7 +69,8 @@ void clean_up_webserver_framework()
 Webserver *create_webserver()
 {
     Webserver *webserver = malloc(sizeof(Webserver));
-    if (webserver == null) {
+    if (webserver == null)
+    {
         perror("Failed to allocate memory for webserver");
         return NULL;
     }
@@ -83,7 +86,8 @@ Webserver *create_webserver()
     webserver->socket = -1;
 
     webserver->stop_notifier = create_stop_notifier();
-    if (webserver->stop_notifier == NULL) {
+    if (webserver->stop_notifier == NULL)
+    {
         free(webserver);
         fprintf(stderr, "Failed to create StopNotifier.\n");
         return NULL;
@@ -99,22 +103,27 @@ ArrayList *param_options(const char *total_path)
     int partsCount;
     char **urlParts = string_split(total_path, '/', &partsCount);
 
-    for (int i = 1; i < partsCount; ++i) {
+    for (int i = 1; i < partsCount; ++i)
+    {
         int total_length = 0;
-        for (int j = 0; j <= i; ++j) {
-            total_length += (int) strlen(urlParts[j]) + 1;
+        for (int j = 0; j <= i; ++j)
+        {
+            total_length += (int)strlen(urlParts[j]) + 1;
         }
 
         char *part = malloc(total_length + 1);
-        if (part == null) {
+        if (part == null)
+        {
             free_string_parts(urlParts, partsCount);
             return NULL;
         }
 
         part[0] = '\0';
-        for (int j = 0; j <= i; ++j) {
+        for (int j = 0; j <= i; ++j)
+        {
             strncat(part, urlParts[j], total_length - strlen(part) - 1);
-            if (j != i) {
+            if (j != i)
+            {
                 strncat(part, "/", total_length - strlen(part) - 1);
             }
         }
@@ -127,7 +136,7 @@ ArrayList *param_options(const char *total_path)
     return list;
 }
 
-bool search_in_routing_table(const HashTable *table, Request *request, Response *response, const char* path)
+bool search_in_routing_table(const HashTable *table, Request *request, Response *response, const char *path)
 {
     if (table == NULL || path == NULL)
     {
@@ -140,22 +149,25 @@ bool search_in_routing_table(const HashTable *table, Request *request, Response 
         const RoutingEntry *entry = search_table(method_table, path);
         if (entry != NULL)
         {
-            ((route_implementation) entry->data)(request, response);
+            ((route_implementation)entry->data)(request, response);
             return true;
         }
     }
 
     const HashTable *routers = search_table(table, "ROUTERS");
-    if (routers == null) return false;
+    if (routers == null)
+        return false;
 
     ArrayList *list = param_options(path);
-    if (list == null) return false;
+    if (list == null)
+        return false;
 
     bool found = false;
-    for (int i = 0; i < list->size; ++i) {
+    for (int i = 0; i < list->size; ++i)
+    {
         const char *key = list->elements[i];
         const size_t partLength = strlen(key);
-        char *sub = substring(path, (int) partLength, strlen(path));
+        char *sub = substring(path, (int)partLength, strlen(path));
 
         if (sub == NULL)
         {
@@ -166,13 +178,15 @@ bool search_in_routing_table(const HashTable *table, Request *request, Response 
 
         const RoutingEntry *routing_entry = search_table(routers, key);
 
-        if (routing_entry != null) {
+        if (routing_entry != null)
+        {
             found = search_in_routing_table(routing_entry->data, request, response, sub);
         }
 
         free(sub);
 
-        if (found) break;
+        if (found)
+            break;
     }
 
     free_arraylist(list);
@@ -214,15 +228,16 @@ void handle_client(const SOCKET client_socket, const Webserver *webserver)
     }
 
     char *body = strstr(buffer, "\r\n\r\n");
-    if (body) body += 4;
+    if (body)
+        body += 4;
 
     HashTable *query_params = create_table(10);
     parse_url_params(query_params, path);
 
     Request *request = create_request(webserver->port, path, absolute_path,
-                                      NULL, string_to_method(method),
-                                      query_params, body);
-    Response *response = create_response(client_socket);
+                                        NULL, string_to_method(method),
+                                        query_params, body);
+    Response *response = create_response(client_socket, webserver->not_found);
 
     const bool found = search_in_routing_table(webserver->routes, request, response, absolute_path);
 
@@ -242,7 +257,8 @@ void handle_client(const SOCKET client_socket, const Webserver *webserver)
     free(buffer);
 }
 
-struct inter_holder {
+struct inter_holder
+{
     SOCKET client_socket;
     Webserver *webserver;
 };
@@ -262,13 +278,13 @@ bool run_webserver(Webserver *webserver)
         return false;
     }
 
-    if (webserver == NULL) return false;
+    if (webserver == NULL)
+        return false;
 
     struct sockaddr_in socket_address = {
-            .sin_family = AF_INET,
-            .sin_addr.s_addr = INADDR_ANY,
-            .sin_port = htons(webserver->port)
-    };
+        .sin_family = AF_INET,
+        .sin_addr.s_addr = INADDR_ANY,
+        .sin_port = htons(webserver->port)};
 
     webserver->socket = socket(AF_INET, SOCK_STREAM, 0);
     if (webserver->socket < 0)
@@ -279,9 +295,12 @@ bool run_webserver(Webserver *webserver)
 
     if (bind(webserver->socket, (struct sockaddr *)&socket_address, sizeof(socket_address)) < 0)
     {
-        if (errno == EADDRINUSE) {
+        if (errno == EADDRINUSE)
+        {
             fprintf(stderr, "Error: Port %d already in use.", webserver->port);
-        } else {
+        }
+        else
+        {
             perror("bind");
         }
 
@@ -299,7 +318,8 @@ bool run_webserver(Webserver *webserver)
     printf("Server is listening on port %d\n", webserver->port);
 
     ThreadPool *pool = null;
-    if (webserver->thread_count > 0) {
+    if (webserver->thread_count > 0)
+    {
         pool = create_threadpool(webserver->thread_count);
     }
 
@@ -311,22 +331,26 @@ bool run_webserver(Webserver *webserver)
         FD_ZERO(&read_fds);
         FD_SET(webserver->socket, &read_fds);
 
-        if (stop_fd != INVALID_SOCKET) {
+        if (stop_fd != INVALID_SOCKET)
+        {
             FD_SET(stop_fd, &read_fds);
         }
 
         const SOCKET max_fd = webserver->socket > stop_fd ? webserver->socket : stop_fd;
 
         const int activity = select(max_fd + 1, &read_fds, NULL, NULL, NULL);
-        if (activity < 0) {
+        if (activity < 0)
+        {
 #ifdef _WIN32
             const int wsaErr = WSAGetLastError();
-            if (wsaErr == WSAEINTR) {
+            if (wsaErr == WSAEINTR)
+            {
                 continue;
             }
             fprintf(stderr, "select() error: %d\n", wsaErr);
 #else
-            if (errno == EINTR) {
+            if (errno == EINTR)
+            {
                 continue;
             }
             perror("select() error");
@@ -334,7 +358,8 @@ bool run_webserver(Webserver *webserver)
             break;
         }
 
-        if (stop_fd != INVALID_SOCKET && FD_ISSET(stop_fd, &read_fds)) {
+        if (stop_fd != INVALID_SOCKET && FD_ISSET(stop_fd, &read_fds))
+        {
 #ifdef _WIN32
             char dummy[1];
             recv(stop_fd, dummy, 1, 0);
@@ -345,33 +370,41 @@ bool run_webserver(Webserver *webserver)
             break;
         }
 
-        if (FD_ISSET(webserver->socket, &read_fds)) {
+        if (FD_ISSET(webserver->socket, &read_fds))
+        {
             const SOCKET client_socket = accept(webserver->socket, NULL, NULL);
-            if (client_socket == INVALID_SOCKET) {
+            if (client_socket == INVALID_SOCKET)
+            {
                 perror("accept");
                 continue;
             }
 
             struct inter_holder *data = malloc(sizeof(struct inter_holder));
-            if (!data) {
+            if (!data)
+            {
                 close_socket(client_socket);
                 continue;
             }
             data->client_socket = client_socket;
-            data->webserver     = webserver;
+            data->webserver = webserver;
 
-            if (pool) {
+            if (pool)
+            {
                 const bool task_added = threadpool_add_task(pool, inter_helper, data);
-                if (!task_added) {
+                if (!task_added)
+                {
                     inter_helper(data);
                 }
-            } else {
+            }
+            else
+            {
                 inter_helper(data);
             }
         }
     }
 
-    if (pool != null) {
+    if (pool != null)
+    {
         destroy_threadpool(pool);
     }
 
@@ -380,10 +413,12 @@ bool run_webserver(Webserver *webserver)
 
 void stop_webserver(Webserver *webserver)
 {
-    if (webserver == NULL) return;
+    if (webserver == NULL)
+        return;
     webserver->continue_running = false;
 
-    if (webserver->stop_notifier) {
+    if (webserver->stop_notifier)
+    {
         signal_stop_notifier(webserver->stop_notifier);
     }
 }
@@ -396,11 +431,13 @@ void clean_up_webserver(Webserver *webserver)
 
 void free_webserver(Webserver *webserver)
 {
-    if (webserver == NULL) return;
+    if (webserver == NULL)
+        return;
 
     free_routing_structure(webserver->routes);
 
-    if (webserver->stop_notifier) {
+    if (webserver->stop_notifier)
+    {
         free_stop_notifier(webserver->stop_notifier);
         webserver->stop_notifier = NULL;
     }
@@ -418,5 +455,5 @@ void add_route(const HashTable *routing_table, const enum Method method, const c
 void add_router(const HashTable *routing_table, const char *default_route, HashTable *router)
 {
     insert_table(search_table(routing_table, "ROUTERS"), default_route,
-        create_routing_entry(router, ROUTER));
+                 create_routing_entry(router, ROUTER));
 }

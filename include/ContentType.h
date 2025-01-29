@@ -20,6 +20,7 @@ enum ContentType {
     JS,    /**< Represents application/javascript */
     JPG,    /**< Represents image/jpeg */
     PNG,    /**< Represents image/png */
+    GIF,    /**< Represents image/gif */
     UNKNOWN
 };
 
@@ -31,5 +32,6 @@ enum ContentType {
  */
 CREST_EXPORT const char* ContentType_to_string(enum ContentType content_type);
 CREST_EXPORT enum ContentType string_to_ContentType(const char *content_type_str);
+CREST_EXPORT enum ContentType guess_content_type(const char *file_path);
 
 #endif //C_WEBSERVER_CONTENTTYPE_H

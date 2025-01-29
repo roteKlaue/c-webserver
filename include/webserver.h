@@ -2,8 +2,9 @@
 // Created by xxrot on 02.09.2024.
 //
 
-#ifndef C_WEBSERVER_WEBSERVER_H
-#define C_WEBSERVER_WEBSERVER_H
+#ifndef CREST_WEBSERVER_H
+#define CREST_WEBSERVER_H
+
 #include <stdbool.h>
 
 #include "StopNotifier.h"
@@ -43,4 +44,4 @@ CREST_EXPORT void add_route(const HashTable *routing_table, enum Method method, 
 CREST_EXPORT void add_router(const HashTable *routing_table, const char *default_route, HashTable *router);
 CREST_EXPORT void stop_webserver(Webserver *webserver);
 
-#endif //C_WEBSERVER_WEBSERVER_H
+#endif //CREST_WEBSERVER_H

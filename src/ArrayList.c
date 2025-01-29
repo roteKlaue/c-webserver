@@ -92,6 +92,14 @@ bool remove_arraylist(ArrayList *list, const int index)
     return true;
 }
 
+bool includes_arraylist(const ArrayList *list, void *element) {
+    if (list == NULL || element == NULL || list->element_equals == NULL) return false;
+    for (int i = 0; i < list->size; ++i) {
+        if (list->element_equals(list->elements[i], element)) return true;
+    }
+    return false;
+}
+
 bool insert_arraylist(ArrayList *list, void *element, const int index)
 {
     if (list == NULL || index < 0 || index > list->size) return false;

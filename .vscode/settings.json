@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "static-router.h": "c",
+        "contenttype.h": "c",
+        "io.h": "c",
+        "corecrt_io.h": "c",
+        "corecrt_wio.h": "c"
+    }
+}

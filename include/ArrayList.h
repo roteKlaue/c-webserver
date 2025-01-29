@@ -27,6 +27,7 @@ bool add_arraylist(ArrayList *list, void *element);
 bool insert_arraylist(ArrayList *list, void *element, int index);
 bool is_empty_arraylist(const ArrayList *list);
 bool resize_arraylist(ArrayList *list);
+bool includes_arraylist(const ArrayList *list, void *element);
 int index_of_arraylist(const ArrayList *list, void *element);
 int last_index_of_arraylist(const ArrayList *list, void *element);
 bool shrink_arraylist(ArrayList *list);

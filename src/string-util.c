@@ -7,33 +7,41 @@
 #include <stdlib.h>
 #include "string-util.h"
 
-int find_char_index(const char *src, const char find_char)
+#ifdef _WIN32
+    #define strcasecmp _stricmp
+#else
+    #include <strings.h>
+#endif
+
+size_t find_char_index(const char *src, const char find_char)
 {
-    int index = 0;
-    while (src[index] != '\0')
-    {
-        if (src[index] == find_char)
-        {
-            return index;
+    if (src == NULL) return (size_t) -1;
+
+    const size_t src_len = strlen(src);
+    for (size_t i = 0; i < src_len; i++) {
+        if (src[i] == find_char) {
+            return i;
         }
-        index++;
     }
     return -1;
 }
 
-void copy_until_index(const char *src, char *destination, const int index, const size_t destination_size)
+void copy_until_index(const char *src, char *destination, const size_t index, const size_t destination_size)
 {
-    const int copy_len = index < destination_size - 1 ? index : destination_size - 1;
+    if (src == NULL || destination == NULL || destination_size == 0) return;
 
-    for (int i = 0; i < copy_len; ++i) {
+    const size_t copy_len = index < destination_size - 1 ? index : destination_size - 1;
+
+    for (size_t i = 0; i < copy_len; ++i) {
         destination[i] = src[i];
     }
+
     destination[copy_len] = '\0';
 }
 
 void string_copy_until_char(char *destination, const char *src, const char stop_char, const size_t destination_size)
 {
-    const int index = find_char_index(src, stop_char);
+    const size_t index = find_char_index(src, stop_char);
 
     if (index == -1) {
         strncpy(destination, src, destination_size - 1);
@@ -45,8 +53,10 @@ void string_copy_until_char(char *destination, const char *src, const char stop_
 
 char *to_uppercase(const char *str)
 {
+    if (str == NULL) return NULL;
+
     char *upper = strdup(str);
-    for (int i = 0; str[i] != '\0'; i++)
+    for (size_t i = 0; str[i] != '\0'; i++)
     {
         upper[i] = (char) toupper(upper[i]);
     }
@@ -55,18 +65,19 @@ char *to_uppercase(const char *str)
 
 char *to_lowercase(const char *str)
 {
+    if (str == NULL) return NULL;
+
     char *lower = strdup(str);
-    for (int i = 0; str[i] != '\0'; i++)
+    for (size_t i = 0; str[i] != '\0'; i++)
     {
         lower[i] = (char) tolower(lower[i]);
     }
     return lower;
 }
 
-
 void string_copy_after_char(char *destination, const char *src, const char start_char, const size_t destination_size)
 {
-    int start_index = find_char_index(src, start_char);
+    size_t start_index = find_char_index(src, start_char);
 
     if (start_index != -1) {
         start_index++;
@@ -78,22 +89,21 @@ void string_copy_after_char(char *destination, const char *src, const char start
 }
 
 char* substring(const char* str, const int start, size_t length) {
-    if (str == NULL || start < 0 || length <= 0 || start >= strlen(str)) {
-        return NULL;
-    }
+    if (str == NULL || start < 0 || length <= 0 || start >= strlen(str)) return NULL;
 
-    size_t str_length = strlen(str);
+    const size_t str_length = strlen(str);
     if (start + length > str_length) {
         length = str_length - start;
     }
 
-    char* substr = malloc((length + 1) * sizeof(char));
+    char* substr = malloc(length + 1);
 
     if (substr == NULL) {
+        perror("Failed to allocate memory for substring");
         return NULL;
     }
 
-    strncpy(substr, str + start, length);
+    memcpy(substr, str + start, length);
     substr[length] = '\0';
 
     return substr;
@@ -102,29 +112,40 @@ char* substring(const char* str, const int start, size_t length) {
 int string_count_occurrences(const char *str, const char key)
 {
     if (str == NULL) return -1;
+
+    const size_t len = strlen(str);
     int count = 0;
-    for (int i = 0; i < strlen(str); ++i) {
+
+    for (size_t i = 0; i < len; ++i) {
         if (str[i] == key) count++;
     }
+
     return count;
 }
 
 char **string_split(const char *str, const char key, int *size)
 {
-    if (str == NULL) return NULL;
+    if (str == NULL) {
+        *size = 0;
+        return NULL;
+    }
 
-    int part_count = string_count_occurrences(str, key) + 1;
-
+    const int part_count = string_count_occurrences(str, key) + 1;
     char **parts = malloc(sizeof(char *) * part_count);
-    if (parts == NULL) return NULL;
+
+    if (parts == NULL) {
+        perror("Failed to allocate memory for string parts");
+        return NULL;
+    }
 
     int start = 0, part_index = 0;
+    const size_t len = strlen(str);
 
-    for (int i = 0; i <= strlen(str); ++i)
+    for (int i = 0; i <= len; ++i)
     {
         if (str[i] == key || str[i] == '\0')
         {
-            int length = i - start;
+            const int length = i - start;
 
             parts[part_index] = malloc(sizeof(char) * (length + 1));
 
@@ -135,6 +156,7 @@ char **string_split(const char *str, const char key, int *size)
                     free(parts[j]);
                 }
                 free(parts);
+                perror("Failed to allocate memory for string parts part");
                 return NULL;
             }
 
@@ -158,4 +180,9 @@ void free_string_parts(char **parts, const int size) {
         free(parts[i]);
     }
     free(parts);
+}
+
+bool string_equals_ignore_case(const char *s1, const char *s2) {
+    if (s1 == NULL || s2 == NULL) return false;
+    return strcasecmp(s1, s2) == 0;
 }

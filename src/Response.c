@@ -43,7 +43,7 @@ void send_response(Response *response, char *content)
     {
         fprintf(stderr, "Memory allocation failed\n");
         response->error = "Memory allocation failed";
-        if(response->auto_clean_up)
+        if (response->auto_clean_up)
         {
             free(content);
         }
@@ -67,8 +67,8 @@ void send_response(Response *response, char *content)
     }
 
     const size_t response_length = strlen("HTTP/1.1  \r\nContent-Type: \r\nContent-Length: \r\n\r\n") +
-        content_type_length + num_digits + page_response_length +
-        response_code_length + response_code_num_digits + headers_length  + 1;
+                                    content_type_length + num_digits + page_response_length +
+                                    response_code_length + response_code_num_digits + headers_length + 1;
     char *response_finished = malloc(response_length);
 
     if (response_finished == NULL)
@@ -76,7 +76,7 @@ void send_response(Response *response, char *content)
         fprintf(stderr, "Memory allocation failed\n");
         free(str_value);
         response->error = "Memory allocation failed";
-        if(response->auto_clean_up)
+        if (response->auto_clean_up)
         {
             free(content);
         }
@@ -85,8 +85,8 @@ void send_response(Response *response, char *content)
     }
 
     snprintf(response_finished, response_length,
-             "HTTP/1.1 %d %s\r\nContent-Type: %s\r\nContent-Length: %s\r\n",
-             response->status_code, response_code, content_type, str_value);
+            "HTTP/1.1 %d %s\r\nContent-Type: %s\r\nContent-Length: %s\r\n",
+            response->status_code, response_code, content_type, str_value);
 
     size_t offset = strlen(response_finished);
     for (int i = 0; i < header_count; i++)
@@ -102,19 +102,19 @@ void send_response(Response *response, char *content)
 
     snprintf(response_finished + offset, response_length - offset, "\r\n%s", content);
 
-    send(response->socket, response_finished, (int) strlen(response_finished), 0);
+    send(response->socket, response_finished, (int)strlen(response_finished), 0);
     close_socket(response->socket);
 
     free(str_value);
     free(response_finished);
     free_table_keys(header_keys, header_count);
-    if(response->auto_clean_up)
+    if (response->auto_clean_up)
     {
         free(content);
     }
 }
 
-void send_file_response(Response *response, const void *data, const size_t data_length)
+void send_file_response(Response *response, const char *data, const size_t data_length)
 {
     if (response == NULL || data == NULL)
     {
@@ -145,8 +145,8 @@ void send_file_response(Response *response, const void *data, const size_t data_
     }
 
     const size_t response_length = strlen("HTTP/1.1  \r\nContent-Type: \r\nContent-Length: \r\n\r\n") +
-        content_type_length + num_digits +
-        response_code_length + headers_length + 1;
+                                    content_type_length + num_digits +
+                                    response_code_length + headers_length + 1;
     char *response_finished = malloc(response_length);
 
     if (response_finished == NULL)
@@ -158,8 +158,8 @@ void send_file_response(Response *response, const void *data, const size_t data_
     }
 
     snprintf(response_finished, response_length,
-             "HTTP/1.1 %d %s\r\nContent-Type: %s\r\nContent-Length: %s\r\n",
-             response->status_code, response_code, content_type, str_value);
+            "HTTP/1.1 %d %s\r\nContent-Type: %s\r\nContent-Length: %s\r\n",
+            response->status_code, response_code, content_type, str_value);
 
     size_t offset = strlen(response_finished);
     for (int i = 0; i < header_count; i++)
@@ -175,8 +175,8 @@ void send_file_response(Response *response, const void *data, const size_t data_
 
     snprintf(response_finished + offset, response_length - offset, "\r\n");
 
-    send(response->socket, response_finished, (int) strlen(response_finished), 0);
-    send(response->socket, data, (int) data_length, 0);
+    send(response->socket, response_finished, (int)strlen(response_finished), 0);
+    send(response->socket, data, (int)data_length, 0);
 
     free(response_finished);
     free_table_keys(header_keys, header_count);
@@ -200,8 +200,8 @@ void redirect_response(Response *response, const char *redirect_url, const bool 
     const size_t location_header_length = strlen(location_header);
 
     const size_t response_length = strlen("HTTP/1.1  \r\n\r\n") +
-                                   response_code_length +
-                                   location_header_length + redirect_url_length + strlen("\r\n") + 1;
+                                    response_code_length +
+                                    location_header_length + redirect_url_length + strlen("\r\n") + 1;
 
     char *response_finished = malloc(response_length);
 
@@ -213,15 +213,14 @@ void redirect_response(Response *response, const char *redirect_url, const bool 
     }
 
     snprintf(response_finished, response_length,
-             "HTTP/1.1 %d %s\r\n%s%s\r\n\r\n",
-             response->status_code, response_code, location_header, redirect_url);
+            "HTTP/1.1 %d %s\r\n%s%s\r\n\r\n",
+            response->status_code, response_code, location_header, redirect_url);
 
     send(response->socket, response_finished, (int)strlen(response_finished), 0);
 
     free(response_finished);
     close_socket(response->socket);
 }
-
 
 void json_response(Response *response, char *content)
 {
@@ -239,17 +238,20 @@ void set_status_code(Response *response, const enum StatusCode statusCode)
     response->status_code = statusCode;
 }
 
-Response *create_response(const SOCKET socket)
+Response *create_response(const SOCKET socket, void (*not_found_implementation)(const Request *, Response *))
 {
     Response *response = malloc(sizeof(Response));
-    if (response == NULL) return NULL;
+    if (response == NULL)
+        return NULL;
 
     response->headers = create_table(10);
-    if (response->headers == NULL) {
+    if (response->headers == NULL)
+    {
         free(response);
         return NULL;
     }
 
+    response->not_found_implementation = not_found_implementation;
     response->auto_clean_up = false;
     response->contentType = TEXT;
     response->status_code = OK;
